@@ -174,7 +174,45 @@ Absyn.Stmt Statement() :
 	Absyn.Stmt stmt;
 }
 {
-	stmt = XinuCallStatement()	{ return stmt; }
+	(stmt = Block() | stmt = IfStmt() | stmt = WhileStmt() | stmt = AssignStmt() | stmt = XinuCallStatement()) 
+	{ return stmt; }
+}
+Absyn.Stmt Block() : {
+	Absyn.Stmt st;
+	LinkedList<Absyn.Stmt> sl = new LinkedList<Absyn.Stmt>();
+}
+{
+	"{" (st = Statement() {sl.add(st); } )* "}"
+	{ return new Absyn.Block(sl); }
+}
+Absyn.Stmt IfStmt(): {
+	Absyn.Expr ex;
+	Absyn.Stmt st1, st2 = null; 
+}
+{
+	"if" "(" e = Expression() ")" st1 = Statement()
+	[ LOOKAHEAD(1) " else" st2 = Statement() ]
+	{ return new Absyn.If(ex,st1,st2); }
+}
+Absyn.Stmt WhileStmt() : 
+{
+	Absyn.Expr ex;
+	Absyn.Stmt st;
+}
+{
+	"while" "(" ex = Expression() ")" st = Statement()
+	{ return new Absyn.While(ex,st); }
+}
+Absyn.Stmt AssignStmt() : {
+	Token id;
+	Absyn.Expr ex1, ex2;
+}
+{
+	id = <ID> 
+	("=" ex1 = Expression() ";" 
+	{ return new Absyn.AssignStmt(new Absyn.Identifier(id.toString()), ex1); }
+	| "[" ex1 = Expression() "]" "=" ex2 = Expression() ";" 
+	{ return new ArrayAssign(new Absyn.Identifier(id.toString()), ex1,ex2); } ) 
 }
 
 Absyn.XinuCallStmt XinuCallStatement() :
@@ -191,10 +229,51 @@ Absyn.XinuCallStmt XinuCallStatement() :
 }
 
 Absyn.Expr Expression() :
+{}
 {
-	Token t;
-}
-{
-        t=<STRING> { return new Absyn.StringLiteral(t.toString()); }
+	AndExpression()
 }
 
+void AndExpression() :
+{}
+{
+	LessThanExpression() ("&&" LessThanExpression() )*
+}
+
+void LessThanExpression() : 
+{}
+{
+	AdditiveExpression() ("<" AdditiveExpression() )* 
+}
+void AdditiveExpression() : 
+{}
+{
+	MultiplilyExpression() ( ("+" | "-" ) MultiplilyExpression() )*
+}
+void MultiplilyExpression() : 
+{}
+{
+	PrefixExpression() ( "*" PrefixExpression() )*
+}
+
+void PrefixExpression() : 
+{}
+{
+	"!" PrefixExpression() | PostfixExpression()
+}
+void PostfixExpression() : 
+{}
+{
+	PrimaryExpression() 
+	( "[" Expression() "]" | "." "length" | "." <ID> "(" ExpressionList() ")" )
+}
+void PrimaryExpression() : 
+{}
+{
+	<INT> | <STRING> | "true" | "false" | <ID> | "this" | "new" "int" "[" Expression() "]" | "new" <ID> "(" ")" | "(" Expression() ")"
+}
+void ExpressionList() :
+{}
+{
+	[ Expression() ( "," Expression() )* ]
+}
