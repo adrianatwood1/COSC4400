@@ -149,5 +149,113 @@ public class PrintVisitor implements Visitor
 		ast.base.accept(this);
 		out.print(")");
     }
+	
+	public void visit(Indentifier n){
+		System.out.print(n.s);
+	}
+
+	public void visit(True n){
+		System.out.print("true");
+	}
+
+	public void visit(False n){
+		System.out.print("false");
+	}
+
+	public void visit(This n){
+		System.out.print("this");
+	}
+
+	public void visit(Plus n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" + ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(Minus n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" - ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(Times n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" * ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(Divide n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" / ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(LessThan n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" < ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(GreaterThan n){
+		System.out.print("(");
+		n.e1.accept(this);
+		System.out.print(" > ");
+		n.e2.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(Not n){
+		System.out.print("(!");
+		n.e.accept(this);
+		System.out.print(")");
+	}
+
+	public void visit(Assign n){
+		n.v.accept(this);
+		System.out.print(" = ");
+		n.e.accept(this);
+		System.out.print(";");
+	}
+
+	public void visit(If n){
+		System.out.print("if (");
+		n.e.accept(this);
+		System.out.print(") ");
+		n.s1.accept(this);
+		if(n.s2 != null){
+			System.out.print(" else ");
+			n.s2.accept(this);
+		}
+	}
+
+	public void visit(While n){
+		System.out.print("while (");
+		n.e.accept(this);
+		System.out.print(") ");
+		n.s.accept(this);
+	}
+
+	public void visit(Block n){
+		System.out.println("{");
+		for(Stmt s : n.body){
+			if(s != null){
+				s.accept(this);
+			}
+		}
+		System.out.println("}");
+	}
+
+
+
 
 }
