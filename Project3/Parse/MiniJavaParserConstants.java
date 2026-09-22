@@ -126,7 +126,10 @@ public interface MiniJavaParserConstants {
     "<DIGIT>",
     "\"_\"",
     "<token of kind 47>",
+    "\"extends\"",
+    "\"return\"",
     "\"&&\"",
+    "\"/\"",
   };
 
 }

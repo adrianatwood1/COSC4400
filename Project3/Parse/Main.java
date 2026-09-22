@@ -7,6 +7,17 @@ import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 
+/*
+ * COSC 4400 - Project 3
+ * Building a Parser for our mini java syntax
+ * @authors Adrian Atwood and PJ panarese
+ * Instructor Dr.Brylow
+ * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu patrick.panarese@marquette.edu
+ * 
+ * Gemini was used to help clean up constant formatting issues within print.visitor file, prompt was to give a guide to the syntax of the different methods that were used. All code was changed by us.
+ */
+
+
 
 public class Main
 {   

@@ -110,13 +110,13 @@ SKIP :
 /* MiniJava Grammar */
 /********************/
 
-// Goal 	::= 	MainClass ( ClassDeclaration | ThreadDeclaration )* <EOF>
+// Goal 	::= 	MainClass ( ClassDeclaration )* <EOF>
 Absyn.Program Goal() :
 {
 	LinkedList<Absyn.ClassDecl> cl = new LinkedList<Absyn.ClassDecl>();
 }
 {
-	MainClassDeclaration(cl) <EOF>
+	MainClassDeclaration(cl) ( ClassDeclaration(cl) )* <EOF>
 	{ return new Absyn.Program(cl); }
 }
 
@@ -154,6 +154,49 @@ Absyn.ClassDecl MainClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
 		return cd;
 	}
 }
+
+// ClassDeclaration ::= "class" Identifier ( "extends" Identifier )? "{" ( VarDeclaration )* ( MethodDeclaration )* "}"
+void ClassDeclaration(LinkedList<Absyn.ClassDecl> cl) : 
+{
+	Token name, parent = null;
+	Absyn.VarDecl v;
+	Absyn.MethodDecl m;
+	LinkedList<Absyn.VarDecl> field = new LinkedList<Absyn.VarDecl>();
+	LinkedList<Absyn.MethodDecl> method = new LinkedList<Absyn.MethodDecl>();
+}
+{
+	"class" name = <ID> [ "extends" parent = <ID> ] "{"
+	( LOOKAHEAD(VarDeclaration()) v = VarDeclaration() { field.add(v); } )*
+	( m = MethodDeclaration() {method.add(m); })*
+	"}"
+	{
+		String pName = (parent != null) ? parent.image : null;
+		cl.add(new Absyn.ClassDecl(name.image,pName,field,method));
+	}
+}
+// MethodDeclaration ::= "public" Type Identifier "(" ( Type Identifier ( "," Type Identifier )* )? ")" "{" ( VarDeclaration )* ( Statement )* "return" Expression ";" "}"
+Absyn.MethodDecl MethodDeclaration() :
+{
+    Absyn.Type rType, pType;
+    Token name, pName;
+    Absyn.Expr rVal;
+    Absyn.VarDecl v;
+    Absyn.Stmt s;
+    LinkedList<Absyn.Formal> param = new LinkedList<Absyn.Formal>();
+    LinkedList<Absyn.VarDecl> local = new LinkedList<Absyn.VarDecl>();
+    LinkedList<Absyn.Stmt> stmt = new LinkedList<Absyn.Stmt>();
+}
+{
+    "public" rType = Type() name = <ID> "("
+    [ pType = Type() pName = <ID> { param.add(new Absyn.Formal(pType, pName.image)); }
+      ( "," pType = Type() pName = <ID> { param.add(new Absyn.Formal(pType, pName.image)); } )*
+    ] ")" "{"
+    ( LOOKAHEAD(VarDeclaration()) v = VarDeclaration() { local.add(v); } )*
+    ( s = Statement() { stmt.add(s); } )*
+    "return" rVal = Expression() ";" "}"
+    { return new Absyn.MethodDecl(rType, false, name.image, param, local, stmt, rVal); }
+}
+
 
 // VarDeclaration 	::= 	Type Identifier ( = Expression )? ";"
 Absyn.VarDecl VarDeclaration() :
@@ -288,11 +331,22 @@ Absyn.Expr AdditiveExpression() : {
 	{return ex1;}
 }
 Absyn.Expr MultiplilyExpression() :
-{ Absyn.Expr ex1, ex2; }
+{ Absyn.Expr ex1, ex2;
+  Token op;
+}
 {
 	ex1 = PrefixExpression()
-	("*" ex2 = PrefixExpression() { ex1 = new Absyn.Times(ex1,ex2); })*
-	{return ex1; }
+	(
+		(op = "*" | op = "/" ) ex2 = PrefixExpression()
+		{
+			if (op.image.equals("*")){
+				ex1 = new Absyn.Times(ex1,ex2);
+			}else{
+				ex1 = new Absyn.Divide(ex1,ex2);
+			}
+		}
+	)*
+	{return ex1;}
 }
 Absyn.Expr PrefixExpression() : 
 {Absyn.Expr ex; }
