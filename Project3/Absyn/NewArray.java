@@ -2,10 +2,10 @@ package Absyn;
 
 //Making new arrays
 
-public class newArray extends Expr{
+public class NewArray extends Expr{
     public Expr ex;
 
-    public newArray(Expr ex){
+    public NewArray(Expr ex){
         this.ex = ex;
 
     }

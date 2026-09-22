@@ -2,11 +2,11 @@ package Absyn;
 
 // making new objects since its an object based lang
 
-public class newObject extends Expr{
+public class NewObject extends Expr{
 
     public Identifier id;
 
-    public newObject(Identifier id){
+    public NewObject(Identifier id){
         this.id = id;
     }
 

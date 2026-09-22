@@ -55,10 +55,40 @@ TOKEN :
 	| < "," >
 
 	/* Reserved words that aren't really reserved in Java. */
+	  < "class" >
+    | < "public" >
+    | < "static" >
+    | < "void" >
 	| < "main" >
 	| < "String" > 
 	| < "Thread" > 
 	| < "Xinu" >
+	| < IF: "if" >
+    | < ELSE: "else" >
+    | < WHILE: "while" >
+    | < TRUE: "true" >
+    | < FALSE: "false" >
+    | < THIS: "this" >
+    | < NEW: "new" >
+    | < LENGTH: "length" >
+    | < INT_TYPE: "int" >
+	/*Operators */
+	| < BANG: "!" >
+    | < STAR: "*" >
+    | < PLUS: "+" >
+    | < MINUS: "-" >
+    | < LESS: "<" >
+    | < ASSIGN: "=" >
+    | < DOT: "." >
+    | < "{" >
+    | < "}" >
+    | < "(" >
+    | < ")" >
+    | < "[" >
+    | < "]" >
+    | < ";" >
+    | < "," >
+
 }
 
 
@@ -190,9 +220,9 @@ Absyn.Stmt IfStmt(): {
 	Absyn.Stmt st1, st2 = null; 
 }
 {
-	"if" "(" e = Expression() ")" st1 = Statement()
-	[ LOOKAHEAD(1) " else" st2 = Statement() ]
-	{ return new Absyn.If(ex,st1,st2); }
+	"if" "(" ex = Expression() ")" st1 = Statement()
+	[ LOOKAHEAD(1) "else" st2 = Statement() ]
+	{ return new Absyn.If(ex, st1, st2); }
 }
 Absyn.Stmt WhileStmt() : 
 {
@@ -210,9 +240,9 @@ Absyn.Stmt AssignStmt() : {
 {
 	id = <ID> 
 	("=" ex1 = Expression() ";" 
-	{ return new Absyn.AssignStmt(new Absyn.Identifier(id.toString()), ex1); }
+	{ return new Absyn.Assign(new Absyn.Identifier(id.toString()), ex1); }
 	| "[" ex1 = Expression() "]" "=" ex2 = Expression() ";" 
-	{ return new ArrayAssign(new Absyn.Identifier(id.toString()), ex1,ex2); } ) 
+	{ return new Absyn.ArrayAssign(new Absyn.Identifier(id.toString()), ex1, ex2); } ) 
 }
 
 Absyn.XinuCallStmt XinuCallStatement() :
@@ -228,52 +258,102 @@ Absyn.XinuCallStmt XinuCallStatement() :
 	")" ";" { return new Absyn.XinuCallStmt(method.toString(), args); }
 }
 
-Absyn.Expr Expression() :
-{}
+Absyn.Expr Expression() : 
+{ Absyn.Expr ex; }
 {
-	AndExpression()
-}
+	ex = AndExpression() { return ex; }
 
-void AndExpression() :
-{}
-{
-	LessThanExpression() ("&&" LessThanExpression() )*
 }
+Absyn.Expr AndExpression() : 
+{ Absyn.Expr ex1, ex2; }
+{
+	ex1 = LessThanExpression()
+	("&&" ex2 = LessThanExpression() { ex1 = new Absyn.AndExpression(ex1.ex2); } )*
+	{return ex1; }
+}
+Absyn.Expr LessThanExpression() :{
+	Absyn.Expr ex1,ex2;
+}
+{
+	ex1 = AdditiveExpression()
+	("<" ex2 = AdditiveExpression { ex1 = new Absyn.LessThan(ex1,ex2); } )*
+	{return ex1; }
+}
+Absyn.Expr AdditiveExpression() : {
+	Absyn.Expr ex1,ex2;
+	Token op;
 
-void LessThanExpression() : 
-{}
-{
-	AdditiveExpression() ("<" AdditiveExpression() )* 
 }
-void AdditiveExpression() : 
-{}
 {
-	MultiplilyExpression() ( ("+" | "-" ) MultiplilyExpression() )*
-}
-void MultiplilyExpression() : 
-{}
-{
-	PrefixExpression() ( "*" PrefixExpression() )*
-}
+	ex1 = MultiplilyExpression()
+	( 
+		(op = "+" | op = "-" ) e2 = MultiplilyExpression()
+		{
+			if (op.image.equals("+")){
+				ex1 = new Absyn.Plus(ex1,ex2);
 
-void PrefixExpression() : 
-{}
-{
-	"!" PrefixExpression() | PostfixExpression()
+			}else{ 
+				ex1 = new Absyn.Minus(ex1,ex2);
+			}
+		} 
+	)*
+	{return ex1;}
 }
-void PostfixExpression() : 
-{}
+Absyn.Expr MultiplilyExpression() :
+{ Absyn.Expr ex1, ex2}
 {
-	PrimaryExpression() 
-	( "[" Expression() "]" | "." "length" | "." <ID> "(" ExpressionList() ")" )
+	ex1 = PrefixExpression()
+	("*" ex2 = PrefixExpression() { ex1 = new Absyn.Times(ex1,ex2); })*
+	{return ex1; }
 }
-void PrimaryExpression() : 
-{}
+Absyn.Expr PrefixExpression() : 
+{Absyn.Expr ex }
 {
-	<INT> | <STRING> | "true" | "false" | <ID> | "this" | "new" "int" "[" Expression() "]" | "new" <ID> "(" ")" | "(" Expression() ")"
+	"!" ex = PrefixExpression()
+	{
+		return new Absyn.Not(ex);
+	}
+	| ex = PostfixExpression() {return ex; }
+
 }
-void ExpressionList() :
-{}
+Absyn.Expr PostfixExpression() : 
 {
-	[ Expression() ( "," Expression() )* ]
+	Absyn.Expr ex, index;
+	Token id;
+	LinkedList<Absyn.Expr> args;
+
+}
+{
+	ex = PrimaryExpression()
+	( "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex,index); } | "." "length" { e = Absyn.ArrayLength(ex); }
+	| "." id = <ID> "(" args = ExpressionList() ")" { e = new Absyn.Call(e, new Absyn.Identifier(id,image), image);})*
+	{return e; }
+}
+Absyn.Expr PrimaryExpression() : 
+{ 
+	Token token;
+	Absyn.Expr ex;
+
+}
+{
+	token = <INT> { return new Absyn.IntegerLiteral(Integer.parseInt(token.image)); }
+    | token = <STRING> { return new Absyn.StringLiteral(token.image); }
+    | "true" { return new Absyn.True(); }
+    | "false" { return new Absyn.False(); }
+    | token = <ID> { return new Absyn.IdentifierExp(token.image); }
+    | "this" { return new Absyn.This(); }
+    | "new" "int" "[" ex = Expression() "]" { return new Absyn.NewArray(ex); }
+    | "new" t = <ID> "(" ")" { return new Absyn.NewObject(new Absyn.Identifier(token.image)); }
+
+}
+LinkedList<Absyn.Expr> ExpressionList() : {
+	LinkedList<Absyn.Expr> li = new LinkedList<Absyn.Expr>();
+	Absyn.Expr ex;
+}
+{
+	[ 
+		ex = Expression() { li.add(ex); }
+		( "," ex = Expression { li.add(ex); } )*
+	]
+	{ return li; }
 }

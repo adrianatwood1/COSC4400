@@ -9,7 +9,7 @@ public class Assign extends Stmt {
         this.id = id; 
         this.ex = ex;
     }
-}
-public void accept(Visitor v){
+    public void accept(Visitor v){
     v.visit(this);
+}
 }
