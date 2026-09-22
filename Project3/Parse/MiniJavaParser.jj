@@ -55,10 +55,6 @@ TOKEN :
 	| < "," >
 
 	/* Reserved words that aren't really reserved in Java. */
-	  < "class" >
-    | < "public" >
-    | < "static" >
-    | < "void" >
 	| < "main" >
 	| < "String" > 
 	| < "Thread" > 
@@ -79,15 +75,7 @@ TOKEN :
     | < MINUS: "-" >
     | < LESS: "<" >
     | < ASSIGN: "=" >
-    | < DOT: "." >
-    | < "{" >
-    | < "}" >
-    | < "(" >
-    | < ")" >
-    | < "[" >
-    | < "]" >
-    | < ";" >
-    | < "," >
+
 
 }
 
@@ -268,7 +256,7 @@ Absyn.Expr AndExpression() :
 { Absyn.Expr ex1, ex2; }
 {
 	ex1 = LessThanExpression()
-	("&&" ex2 = LessThanExpression() { ex1 = new Absyn.AndExpression(ex1.ex2); } )*
+	("&&" ex2 = LessThanExpression() { ex1 = new Absyn.AndExpression(ex1,ex2); } )*
 	{return ex1; }
 }
 Absyn.Expr LessThanExpression() :{
@@ -276,7 +264,7 @@ Absyn.Expr LessThanExpression() :{
 }
 {
 	ex1 = AdditiveExpression()
-	("<" ex2 = AdditiveExpression { ex1 = new Absyn.LessThan(ex1,ex2); } )*
+	("<" ex2 = AdditiveExpression() { ex1 = new Absyn.LessThan(ex1,ex2); } )*
 	{return ex1; }
 }
 Absyn.Expr AdditiveExpression() : {
@@ -287,7 +275,7 @@ Absyn.Expr AdditiveExpression() : {
 {
 	ex1 = MultiplilyExpression()
 	( 
-		(op = "+" | op = "-" ) e2 = MultiplilyExpression()
+		(op = "+" | op = "-" ) ex2 = MultiplilyExpression()
 		{
 			if (op.image.equals("+")){
 				ex1 = new Absyn.Plus(ex1,ex2);
@@ -300,14 +288,14 @@ Absyn.Expr AdditiveExpression() : {
 	{return ex1;}
 }
 Absyn.Expr MultiplilyExpression() :
-{ Absyn.Expr ex1, ex2}
+{ Absyn.Expr ex1, ex2; }
 {
 	ex1 = PrefixExpression()
 	("*" ex2 = PrefixExpression() { ex1 = new Absyn.Times(ex1,ex2); })*
 	{return ex1; }
 }
 Absyn.Expr PrefixExpression() : 
-{Absyn.Expr ex }
+{Absyn.Expr ex; }
 {
 	"!" ex = PrefixExpression()
 	{
@@ -325,26 +313,25 @@ Absyn.Expr PostfixExpression() :
 }
 {
 	ex = PrimaryExpression()
-	( "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex,index); } | "." "length" { e = Absyn.ArrayLength(ex); }
-	| "." id = <ID> "(" args = ExpressionList() ")" { e = new Absyn.Call(e, new Absyn.Identifier(id,image), image);})*
-	{return e; }
+	( "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex,index); } | LOOKAHEAD(2) "." "length" { ex = new Absyn.ArrayLength(ex); }
+	| "." id = <ID> "(" args = ExpressionList() ")" { ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);})*
+	{return ex; }
 }
 Absyn.Expr PrimaryExpression() : 
 { 
-	Token token;
+	Token t;
 	Absyn.Expr ex;
-
 }
 {
-	token = <INT> { return new Absyn.IntegerLiteral(Integer.parseInt(token.image)); }
-    | token = <STRING> { return new Absyn.StringLiteral(token.image); }
-    | "true" { return new Absyn.True(); }
-    | "false" { return new Absyn.False(); }
-    | token = <ID> { return new Absyn.IdentifierExp(token.image); }
-    | "this" { return new Absyn.This(); }
-    | "new" "int" "[" ex = Expression() "]" { return new Absyn.NewArray(ex); }
-    | "new" t = <ID> "(" ")" { return new Absyn.NewObject(new Absyn.Identifier(token.image)); }
-
+	  t = <INT> { return new Absyn.IntegerLiteral(Integer.parseInt(t.image)); }
+	| t = <STRING> { return new Absyn.StringLiteral(t.image); }
+	| "true" { return new Absyn.True(); }
+	| "false" { return new Absyn.False(); }
+	| t = <ID> { return new Absyn.IdentifierExp(t.image); }
+	| "this" { return new Absyn.This(); }
+	| LOOKAHEAD(2) "new" "int" "[" ex = Expression() "]" { return new Absyn.NewArray(ex); }
+	| "new" t = <ID> "(" ")" { return new Absyn.NewObject(new Absyn.Identifier(t.image)); }
+	| "(" ex = Expression() ")" { return ex; }
 }
 LinkedList<Absyn.Expr> ExpressionList() : {
 	LinkedList<Absyn.Expr> li = new LinkedList<Absyn.Expr>();
@@ -353,7 +340,7 @@ LinkedList<Absyn.Expr> ExpressionList() : {
 {
 	[ 
 		ex = Expression() { li.add(ex); }
-		( "," ex = Expression { li.add(ex); } )*
+		( "," ex = Expression() { li.add(ex); } )*
 	]
 	{ return li; }
 }
