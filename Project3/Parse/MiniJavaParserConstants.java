@@ -11,47 +11,67 @@ public interface MiniJavaParserConstants {
   /** End of File. */
   int EOF = 0;
   /** RegularExpression Id. */
-  int IF = 23;
+  int IF = 16;
   /** RegularExpression Id. */
-  int ELSE = 24;
+  int ELSE = 17;
   /** RegularExpression Id. */
-  int WHILE = 25;
+  int WHILE = 18;
   /** RegularExpression Id. */
-  int TRUE = 26;
+  int TRUE = 19;
   /** RegularExpression Id. */
-  int FALSE = 27;
+  int FALSE = 20;
   /** RegularExpression Id. */
-  int THIS = 28;
+  int THIS = 21;
   /** RegularExpression Id. */
-  int NEW = 29;
+  int NEW = 22;
   /** RegularExpression Id. */
-  int LENGTH = 30;
+  int LENGTH = 23;
   /** RegularExpression Id. */
-  int INT_TYPE = 31;
+  int INT_TYPE = 24;
   /** RegularExpression Id. */
-  int BANG = 32;
+  int BOOLEAN_TYPE = 25;
   /** RegularExpression Id. */
-  int STAR = 33;
+  int BANG = 26;
   /** RegularExpression Id. */
-  int PLUS = 34;
+  int STAR = 27;
   /** RegularExpression Id. */
-  int MINUS = 35;
+  int PLUS = 28;
   /** RegularExpression Id. */
-  int LESS = 36;
+  int MINUS = 29;
   /** RegularExpression Id. */
-  int ASSIGN = 37;
+  int LESS = 30;
   /** RegularExpression Id. */
-  int INT = 38;
+  int ASSIGN = 31;
   /** RegularExpression Id. */
-  int STRING = 39;
+  int DOT = 32;
   /** RegularExpression Id. */
-  int ID = 40;
+  int LBRACE = 33;
   /** RegularExpression Id. */
-  int LETTER = 41;
+  int RBRACE = 34;
   /** RegularExpression Id. */
-  int DIGIT = 42;
+  int LPAREN = 35;
   /** RegularExpression Id. */
-  int UNDER = 43;
+  int RPAREN = 36;
+  /** RegularExpression Id. */
+  int LBRACKET = 37;
+  /** RegularExpression Id. */
+  int RBRACKET = 38;
+  /** RegularExpression Id. */
+  int SEMI = 39;
+  /** RegularExpression Id. */
+  int COMMA = 40;
+  /** RegularExpression Id. */
+  int INT = 41;
+  /** RegularExpression Id. */
+  int STRING = 42;
+  /** RegularExpression Id. */
+  int ID = 43;
+  /** RegularExpression Id. */
+  int LETTER = 44;
+  /** RegularExpression Id. */
+  int DIGIT = 45;
+  /** RegularExpression Id. */
+  int UNDER = 46;
 
   /** Lexical state. */
   int DEFAULT = 0;
@@ -64,19 +84,12 @@ public interface MiniJavaParserConstants {
     "\"\\n\"",
     "\"\\r\"",
     "\"\\f\"",
+    "<token of kind 6>",
+    "<token of kind 7>",
     "\"class\"",
     "\"public\"",
     "\"static\"",
     "\"void\"",
-    "\".\"",
-    "\"{\"",
-    "\"}\"",
-    "\"(\"",
-    "\")\"",
-    "\"[\"",
-    "\"]\"",
-    "\";\"",
-    "\",\"",
     "\"main\"",
     "\"String\"",
     "\"Thread\"",
@@ -90,19 +103,29 @@ public interface MiniJavaParserConstants {
     "\"new\"",
     "\"length\"",
     "\"int\"",
+    "\"boolean\"",
     "\"!\"",
     "\"*\"",
     "\"+\"",
     "\"-\"",
     "\"<\"",
     "\"=\"",
+    "\".\"",
+    "\"{\"",
+    "\"}\"",
+    "\"(\"",
+    "\")\"",
+    "\"[\"",
+    "\"]\"",
+    "\";\"",
+    "\",\"",
     "<INT>",
     "<STRING>",
     "<ID>",
     "<LETTER>",
     "<DIGIT>",
     "\"_\"",
-    "<token of kind 44>",
+    "<token of kind 47>",
     "\"&&\"",
   };
 

@@ -25,6 +25,11 @@ SKIP :
 {
 	  " " | "\t" | "\n" | "\r" | "\f"
 }
+SKIP :
+{
+  < "//" (~["\n","\r"])* ("\n"|"\r"|"\r\n")? >
+| < "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/" >
+}
 
 /*************************/
 /* Lexical Specification */
@@ -32,34 +37,18 @@ SKIP :
 
 TOKEN :
 {
+    /* Reserved words. */
+      < "class" >
+    | < "public" >
+    | < "static" >
+    | < "void" >
+    | < "main" >
+    | < "String" > 
+    | < "Thread" > 
+    | < "Xinu" >
 
-	/* Reserved words. */
-	  < "class" >
-	| < "public" >
-	| < "static" >
-
-	/* Types. */
-	| < "void" >
-
-	/* Operators. */
-	| < "." >
-
-	/* Grouping tokens. */
-	| < "{" >
-	| < "}" >
-	| < "(" >
-	| < ")" >
-	| < "[" >
-	| < "]" >
-	| < ";" >
-	| < "," >
-
-	/* Reserved words that aren't really reserved in Java. */
-	| < "main" >
-	| < "String" > 
-	| < "Thread" > 
-	| < "Xinu" >
-	| < IF: "if" >
+    /* Keywords */
+    | < IF: "if" >
     | < ELSE: "else" >
     | < WHILE: "while" >
     | < TRUE: "true" >
@@ -68,15 +57,24 @@ TOKEN :
     | < NEW: "new" >
     | < LENGTH: "length" >
     | < INT_TYPE: "int" >
-	/*Operators */
-	| < BANG: "!" >
+    | < BOOLEAN_TYPE: "boolean" >
+
+    /* Operators & Punctuation */
+    | < BANG: "!" >
     | < STAR: "*" >
     | < PLUS: "+" >
     | < MINUS: "-" >
     | < LESS: "<" >
     | < ASSIGN: "=" >
-
-
+    | < DOT: "." >
+    | < LBRACE: "{" >
+    | < RBRACE: "}" >
+    | < LPAREN: "(" >
+    | < RPAREN: ")" >
+    | < LBRACKET: "[" >
+    | < RBRACKET: "]" >
+    | < SEMI: ";" >
+    | < COMMA: "," >
 }
 
 
@@ -184,7 +182,9 @@ Absyn.Type BaseType() :
 	Token name;
 }
 {
-	name = <ID>	{ return new Absyn.IdentifierType(name.toString()); }
+	  "int" { return new Absyn.IntegerType(); }
+	| "boolean" { return new Absyn.BooleanType(); }
+	| name = <ID> { return new Absyn.IdentifierType(name.toString()); }
 }
 
 Absyn.Stmt Statement() :

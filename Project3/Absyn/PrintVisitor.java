@@ -27,9 +27,6 @@ public class PrintVisitor implements Visitor
         { out.print(' '); }
     }
 
-    /** Visitor pattern dispatch. */
-    //public void visit(Absyn ast) {}
-
     public void visit(Program ast)
     {
         out.print("Program(");
@@ -65,9 +62,8 @@ public class PrintVisitor implements Visitor
     public void visit(ClassDecl ast)
     {
         indent();
-        out.print("ClassDecl(");
+        out.print("ClassDecl(" + ast.name + " " + ast.parent); 
         indentCount++;
-        out.print(ast.name + " " + ast.parent); 
         visit(ast.fields);
         visit(ast.methods);
         indentCount--;
@@ -122,9 +118,8 @@ public class PrintVisitor implements Visitor
     public void visit(XinuCallStmt ast)
     {
         indent();
-        out.print("XinuCallStmt(");
+        out.print("XinuCallStmt(" + ast.method);
         indentCount++;
-        out.print(ast.method);
         visit(ast.args);
         indentCount--;
         out.print(")");
@@ -148,186 +143,162 @@ public class PrintVisitor implements Visitor
         ast.base.accept(this);
         out.print(")");
     }
+
+    public void visit(IntegerType ast) { out.print("IntegerType"); }
+    public void visit(BooleanType ast) { out.print("BooleanType"); }
     
     public void visit(Identifier n){
-        System.out.print(n.s);
+        indent();
+        out.print("Identifier(" + n.s + ")");
     }
 
     public void visit(IdentifierExp n){
-        System.out.print(n.st);
+        indent();
+        out.print("IdentifierExpr(" + n.st + ")");
     }
 
     public void visit(True n){
-        System.out.print("true");
+        indent();
+        out.print("TrueExpr");
     }
 
     public void visit(False n){
-        System.out.print("false");
+        indent();
+        out.print("FalseExpr");
     }
 
     public void visit(This n){
-        System.out.print("this");
+        indent();
+        out.print("ThisExpr");
     }
 
-    public void visit(Plus n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" + ");
-        n.e2.accept(this);
-        System.out.print(")");
+    private void printBinaryExpr(String name, Expr e1, Expr e2) {
+        indent();
+        out.print(name + "(");
+        indentCount++;
+        e1.accept(this);
+        e2.accept(this);
+        indentCount--;
+        out.print(")");
     }
 
-    public void visit(Minus n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" - ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(Times n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" * ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(Divide n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" / ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(LessThan n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" < ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(GreaterThan n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" > ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(AndExpression n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" && ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
-
-    public void visit(OrExpression n){
-        System.out.print("(");
-        n.e1.accept(this);
-        System.out.print(" || ");
-        n.e2.accept(this);
-        System.out.print(")");
-    }
+    public void visit(Plus n){ printBinaryExpr("AddExpr", n.e1, n.e2); }
+    public void visit(Minus n){ printBinaryExpr("SubExpr", n.e1, n.e2); }
+    public void visit(Times n){ printBinaryExpr("MulExpr", n.e1, n.e2); }
+    public void visit(Divide n){ printBinaryExpr("DivExpr", n.e1, n.e2); }
+    public void visit(LessThan n){ printBinaryExpr("LesserExpr", n.e1, n.e2); }
+    public void visit(GreaterThan n){ printBinaryExpr("GreaterExpr", n.e1, n.e2); }
+    public void visit(AndExpression n){ printBinaryExpr("AndExpr", n.e1, n.e2); }
+    public void visit(OrExpression n){ printBinaryExpr("OrExpr", n.e1, n.e2); }
 
     public void visit(Not n){
-        System.out.print("(!");
+        indent();
+        out.print("NotExpr(");
+        indentCount++;
         n.e.accept(this);
-        System.out.print(")");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(Assign n){
+        indent();
+        out.print("AssignStmt(");
+        indentCount++;
         n.id.accept(this);
-        System.out.print(" = ");
         n.ex.accept(this);
-        System.out.print(";");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(ArrayAssign n){
+        indent();
+        out.print("ArrayAssignStmt(");
+        indentCount++;
         n.i.accept(this);
-        System.out.print("[");
         n.e1.accept(this);
-        System.out.print("] = ");
         n.e2.accept(this);
-        System.out.print(";");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(If n){
-        System.out.print("if (");
+        indent();
+        out.print("IfStmt(");
+        indentCount++;
         n.ex.accept(this);
-        System.out.print(") ");
         n.st1.accept(this);
         if(n.st2 != null){
-            System.out.print(" else ");
             n.st2.accept(this);
         }
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(While n){
-        System.out.print("while (");
+        indent();
+        out.print("WhileStmt(");
+        indentCount++;
         n.ex.accept(this);
-        System.out.print(") ");
         n.st.accept(this);
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(Block n){
-        System.out.println("{");
-        for(Stmt s : n.sl){
-            if(s != null){
-                s.accept(this);
-            }
-        }
-        System.out.println("}");
+        indent();
+        out.print("BlockStmt(");
+        indentCount++;
+        visit(n.sl);
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(ArrayLookup n){
+        indent();
+        out.print("ArrayExpr(");
+        indentCount++;
         n.ex1.accept(this);
-        System.out.print("[");
         n.ex2.accept(this);
-        System.out.print("]");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(ArrayLength n){
+        indent();
+        out.print("LengthExpr(");
+        indentCount++;
         n.ex.accept(this);
-        System.out.print(".length");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(Call n){
+        indent();
+        out.print("CallExpr(");
+        indentCount++;
         n.ex.accept(this);
-        System.out.print(".");
-        n.id.accept(this);
-        System.out.print("(");
-        if (n.li != null) {
-            for (int i = 0; i < n.li.size(); i++) {
-                ((Expr)n.li.get(i)).accept(this);
-                if (i < n.li.size() - 1) {
-                    System.out.print(", ");
-                }
-            }
-        }
-        System.out.print(")");
+        indent();
+        out.print(n.id.s); 
+        visit(n.li);
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(NewArray n){
-        System.out.print("new int[");
+        indent();
+        out.print("NewArrayExpr(");
+        indentCount++;
         n.ex.accept(this);
-        System.out.print("]");
+        indentCount--;
+        out.print(")");
     }
 
     public void visit(NewObject n){
-        System.out.print("new ");
-        n.id.accept(this);
-        System.out.print("()");
-    }
-
-    public void visit(IntegerType n){
-        System.out.print("int");
-    }
-
-    public void visit(BooleanType n){
-        System.out.print("boolean");
+        indent();
+        out.print("NewObjectExpr(");
+        indentCount++;
+        out.print("IdentifierType(" + n.id.s + ")");
+        indentCount--;
+        out.print(")");
     }
 }
