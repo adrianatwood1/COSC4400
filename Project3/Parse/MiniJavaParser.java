@@ -14,7 +14,7 @@
     label_1:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 8:{
+      case CLASS:{
         ;
         break;
         }
@@ -31,30 +31,27 @@
 
 // MainClass 	::= 	"class" Identifier "{" "public" "static" "void" "main" "(" "String" "[" "]" Identifier ")" "{" Statement "}" "}"
   static final public Absyn.ClassDecl MainClassDeclaration(LinkedList<Absyn.ClassDecl> cl) throws ParseException {Absyn.ClassDecl  cd;
- Absyn.Stmt stmt;
- Absyn.VarDecl var;
- Token name, arg;
- LinkedList<Absyn.MethodDecl> methods = new LinkedList<Absyn.MethodDecl>();
- LinkedList<Absyn.Formal> formals     = new LinkedList<Absyn.Formal>();
- LinkedList<Absyn.VarDecl> locals     = new LinkedList<Absyn.VarDecl>();
- LinkedList<Absyn.Stmt> stmts         = new LinkedList<Absyn.Stmt>();
-    jj_consume_token(8);
+    Absyn.Stmt stmt;
+    Absyn.VarDecl var;
+    Token name, arg;
+    LinkedList<Absyn.MethodDecl> methods = new LinkedList<Absyn.MethodDecl>();
+    LinkedList<Absyn.Formal> formals     = new LinkedList<Absyn.Formal>();
+    LinkedList<Absyn.VarDecl> locals     = new LinkedList<Absyn.VarDecl>();
+    LinkedList<Absyn.Stmt> stmts         = new LinkedList<Absyn.Stmt>();
+    jj_consume_token(CLASS);
     name = jj_consume_token(ID);
     jj_consume_token(LBRACE);
-    jj_consume_token(9);
-    jj_consume_token(10);
-    jj_consume_token(11);
-    jj_consume_token(12);
+    jj_consume_token(PUBLIC);
+    jj_consume_token(STATIC);
+    jj_consume_token(VOID);
+    jj_consume_token(MAIN);
     jj_consume_token(LPAREN);
-    jj_consume_token(13);
+    jj_consume_token(STRING);
     jj_consume_token(LBRACKET);
     jj_consume_token(RBRACKET);
     arg = jj_consume_token(ID);
     jj_consume_token(RPAREN);
-formals.add(new Absyn.Formal(
-   new Absyn.ArrayType(
-    new Absyn.IdentifierType("String")),
-     arg.toString()));
+formals.add(new Absyn.Formal(new Absyn.ArrayType(new Absyn.IdentifierType("String")), arg.image));
     jj_consume_token(LBRACE);
     label_2:
     while (true) {
@@ -69,7 +66,7 @@ locals.add(var);
     label_3:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 15:
+      case XINU:
       case IF:
       case WHILE:
       case LBRACE:
@@ -86,27 +83,24 @@ stmts.add(stmt);
     }
     jj_consume_token(RBRACE);
     jj_consume_token(RBRACE);
-methods.add(new Absyn.MethodDecl(null, false, "main", formals,
-    locals, stmts, new Absyn.IntegerLiteral(0)));
-  cd = new Absyn.ClassDecl(name.toString(),
-      null,
-      new LinkedList<Absyn.VarDecl>(), methods);
-  cl.add(cd);
-  {if ("" != null) return cd;}
+methods.add(new Absyn.MethodDecl(null, false, "main", formals, locals, stmts, new Absyn.IntegerLiteral(0)));
+        cd = new Absyn.ClassDecl(name.image, null, new LinkedList<Absyn.VarDecl>(), methods);
+        cl.add(cd);
+        {if ("" != null) return cd;}
     throw new Error("Missing return statement in function");
 }
 
 // ClassDeclaration ::= "class" Identifier ( "extends" Identifier )? "{" ( VarDeclaration )* ( MethodDeclaration )* "}"
   static final public void ClassDeclaration(LinkedList<Absyn.ClassDecl> cl) throws ParseException {Token name, parent = null;
- Absyn.VarDecl v;
- Absyn.MethodDecl m;
- LinkedList<Absyn.VarDecl> field = new LinkedList<Absyn.VarDecl>();
- LinkedList<Absyn.MethodDecl> method = new LinkedList<Absyn.MethodDecl>();
-    jj_consume_token(8);
+    Absyn.VarDecl v;
+    Absyn.MethodDecl m;
+    LinkedList<Absyn.VarDecl> field = new LinkedList<Absyn.VarDecl>();
+    LinkedList<Absyn.MethodDecl> method = new LinkedList<Absyn.MethodDecl>();
+    jj_consume_token(CLASS);
     name = jj_consume_token(ID);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case 48:{
-      jj_consume_token(48);
+    case EXTENDS:{
+      jj_consume_token(EXTENDS);
       parent = jj_consume_token(ID);
       break;
       }
@@ -128,7 +122,7 @@ field.add(v);
     label_5:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 9:{
+      case PUBLIC:{
         ;
         break;
         }
@@ -141,20 +135,31 @@ method.add(m);
     }
     jj_consume_token(RBRACE);
 String pName = (parent != null) ? parent.image : null;
-  cl.add(new Absyn.ClassDecl(name.image,pName,field,method));
+        cl.add(new Absyn.ClassDecl(name.image,pName,field,method));
 }
 
 // MethodDeclaration ::= "public" Type Identifier "(" ( Type Identifier ( "," Type Identifier )* )? ")" "{" ( VarDeclaration )* ( Statement )* "return" Expression ";" "}"
-  static final public Absyn.MethodDecl MethodDeclaration() throws ParseException {Absyn.Type retType, pType;
+  static final public Absyn.MethodDecl MethodDeclaration() throws ParseException {Absyn.Type rType, pType;
     Token name, pName;
-    Absyn.Expr retVal;
+    Absyn.Expr rVal;
     Absyn.VarDecl v;
     Absyn.Stmt s;
-    LinkedList<Absyn.Formal> params = new LinkedList<Absyn.Formal>();
-    LinkedList<Absyn.VarDecl> locals = new LinkedList<Absyn.VarDecl>();
-    LinkedList<Absyn.Stmt> stmts = new LinkedList<Absyn.Stmt>();
-    jj_consume_token(9);
-    retType = Type();
+    boolean sync = false;
+    LinkedList<Absyn.Formal> param = new LinkedList<Absyn.Formal>();
+    LinkedList<Absyn.VarDecl> local = new LinkedList<Absyn.VarDecl>();
+    LinkedList<Absyn.Stmt> stmt = new LinkedList<Absyn.Stmt>();
+    jj_consume_token(PUBLIC);
+    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case SYNCHRONIZED:{
+      jj_consume_token(SYNCHRONIZED);
+sync = true;
+      break;
+      }
+    default:
+      jj_la1[4] = jj_gen;
+      ;
+    }
+    rType = Type();
     name = jj_consume_token(ID);
     jj_consume_token(LPAREN);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -163,7 +168,7 @@ String pName = (parent != null) ? parent.image : null;
     case ID:{
       pType = Type();
       pName = jj_consume_token(ID);
-params.add(new Absyn.Formal(pType, pName.image));
+param.add(new Absyn.Formal(pType, pName.image));
       label_6:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -172,18 +177,18 @@ params.add(new Absyn.Formal(pType, pName.image));
           break;
           }
         default:
-          jj_la1[4] = jj_gen;
+          jj_la1[5] = jj_gen;
           break label_6;
         }
         jj_consume_token(COMMA);
         pType = Type();
         pName = jj_consume_token(ID);
-params.add(new Absyn.Formal(pType, pName.image));
+param.add(new Absyn.Formal(pType, pName.image));
       }
       break;
       }
     default:
-      jj_la1[5] = jj_gen;
+      jj_la1[6] = jj_gen;
       ;
     }
     jj_consume_token(RPAREN);
@@ -196,12 +201,12 @@ params.add(new Absyn.Formal(pType, pName.image));
         break label_7;
       }
       v = VarDeclaration();
-locals.add(v);
+local.add(v);
     }
     label_8:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 15:
+      case XINU:
       case IF:
       case WHILE:
       case LBRACE:
@@ -210,24 +215,24 @@ locals.add(v);
         break;
         }
       default:
-        jj_la1[6] = jj_gen;
+        jj_la1[7] = jj_gen;
         break label_8;
       }
       s = Statement();
-stmts.add(s);
+stmt.add(s);
     }
-    jj_consume_token(49);
-    retVal = Expression();
+    jj_consume_token(RETURN);
+    rVal = Expression();
     jj_consume_token(SEMI);
     jj_consume_token(RBRACE);
-{if ("" != null) return new Absyn.MethodDecl(retType, false, name.image, params, locals, stmts, retVal);}
+{if ("" != null) return new Absyn.MethodDecl(rType, sync, name.image, param, local, stmt, rVal);}
     throw new Error("Missing return statement in function");
 }
 
 // VarDeclaration 	::= 	Type Identifier ( = Expression )? ";"
   static final public Absyn.VarDecl VarDeclaration() throws ParseException {Absyn.Type type = null;
- Token      name = null;
- Absyn.Expr init = null;
+    Token      name = null;
+    Absyn.Expr init = null;
     type = Type();
     name = jj_consume_token(ID);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -237,11 +242,11 @@ stmts.add(s);
       break;
       }
     default:
-      jj_la1[7] = jj_gen;
+      jj_la1[8] = jj_gen;
       ;
     }
     jj_consume_token(SEMI);
-{if ("" != null) return new Absyn.VarDecl(type, name.toString(), init);}
+{if ("" != null) return new Absyn.VarDecl(type, name.image, init);}
     throw new Error("Missing return statement in function");
 }
 
@@ -255,7 +260,7 @@ stmts.add(s);
         break;
         }
       default:
-        jj_la1[8] = jj_gen;
+        jj_la1[9] = jj_gen;
         break label_9;
       }
       jj_consume_token(LBRACKET);
@@ -280,11 +285,11 @@ type = new Absyn.ArrayType(type);
       }
     case ID:{
       name = jj_consume_token(ID);
-{if ("" != null) return new Absyn.IdentifierType(name.toString());}
+{if ("" != null) return new Absyn.IdentifierType(name.image);}
       break;
       }
     default:
-      jj_la1[9] = jj_gen;
+      jj_la1[10] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -305,30 +310,38 @@ type = new Absyn.ArrayType(type);
       stmt = WhileStmt();
       break;
       }
-    case ID:{
-      stmt = AssignStmt();
-      break;
-      }
-    case 15:{
-      stmt = XinuCallStatement();
-      break;
-      }
     default:
-      jj_la1[10] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
+      jj_la1[11] = jj_gen;
+      if (jj_2_4(2)) {
+        stmt = ArrayAssignStmt();
+      } else {
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+        case ID:{
+          stmt = AssignStmt();
+          break;
+          }
+        case XINU:{
+          stmt = XinuCallStatement();
+          break;
+          }
+        default:
+          jj_la1[12] = jj_gen;
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+      }
     }
 {if ("" != null) return stmt;}
     throw new Error("Missing return statement in function");
 }
 
   static final public Absyn.Stmt Block() throws ParseException {Absyn.Stmt st;
- LinkedList<Absyn.Stmt> sl = new LinkedList<Absyn.Stmt>();
+    LinkedList<Absyn.Stmt> sl = new LinkedList<Absyn.Stmt>();
     jj_consume_token(LBRACE);
     label_10:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 15:
+      case XINU:
       case IF:
       case WHILE:
       case LBRACE:
@@ -337,7 +350,7 @@ type = new Absyn.ArrayType(type);
         break;
         }
       default:
-        jj_la1[11] = jj_gen;
+        jj_la1[13] = jj_gen;
         break label_10;
       }
       st = Statement();
@@ -349,7 +362,7 @@ sl.add(st);
 }
 
   static final public Absyn.Stmt IfStmt() throws ParseException {Absyn.Expr ex;
- Absyn.Stmt st1, st2 = null;
+    Absyn.Stmt st1, st2 = null;
     jj_consume_token(IF);
     jj_consume_token(LPAREN);
     ex = Expression();
@@ -362,7 +375,7 @@ sl.add(st);
       break;
       }
     default:
-      jj_la1[12] = jj_gen;
+      jj_la1[14] = jj_gen;
       ;
     }
 {if ("" != null) return new Absyn.If(ex, st1, st2);}
@@ -370,7 +383,7 @@ sl.add(st);
 }
 
   static final public Absyn.Stmt WhileStmt() throws ParseException {Absyn.Expr ex;
- Absyn.Stmt st;
+    Absyn.Stmt st;
     jj_consume_token(WHILE);
     jj_consume_token(LPAREN);
     ex = Expression();
@@ -381,50 +394,47 @@ sl.add(st);
 }
 
   static final public Absyn.Stmt AssignStmt() throws ParseException {Token id;
- Absyn.Expr ex1, ex2;
+    Absyn.Expr ex1;
     id = jj_consume_token(ID);
-    switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-    case ASSIGN:{
-      jj_consume_token(ASSIGN);
-      ex1 = Expression();
-      jj_consume_token(SEMI);
-{if ("" != null) return new Absyn.Assign(new Absyn.Identifier(id.toString()), ex1);}
-      break;
-      }
-    case LBRACKET:{
-      jj_consume_token(LBRACKET);
-      ex1 = Expression();
-      jj_consume_token(RBRACKET);
-      jj_consume_token(ASSIGN);
-      ex2 = Expression();
-      jj_consume_token(SEMI);
-{if ("" != null) return new Absyn.ArrayAssign(new Absyn.Identifier(id.toString()), ex1, ex2);}
-      break;
-      }
-    default:
-      jj_la1[13] = jj_gen;
-      jj_consume_token(-1);
-      throw new ParseException();
-    }
+    jj_consume_token(ASSIGN);
+    ex1 = Expression();
+    jj_consume_token(SEMI);
+{if ("" != null) return new Absyn.Assign(new Absyn.Identifier(id.image), ex1);}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public Absyn.Stmt ArrayAssignStmt() throws ParseException {Token id;
+    Absyn.Expr ex1, ex2;
+    id = jj_consume_token(ID);
+    jj_consume_token(LBRACKET);
+    ex1 = Expression();
+    jj_consume_token(RBRACKET);
+    jj_consume_token(ASSIGN);
+    ex2 = Expression();
+    jj_consume_token(SEMI);
+{if ("" != null) return new Absyn.ArrayAssign(new Absyn.Identifier(id.image), ex1, ex2);}
     throw new Error("Missing return statement in function");
 }
 
   static final public Absyn.XinuCallStmt XinuCallStatement() throws ParseException {Token method;
- Absyn.Expr arg;
- LinkedList<Absyn.Expr> args = new LinkedList<Absyn.Expr>();
-    jj_consume_token(15);
+    Absyn.Expr arg;
+    LinkedList<Absyn.Expr> args = new LinkedList<Absyn.Expr>();
+    jj_consume_token(XINU);
     jj_consume_token(DOT);
     method = jj_consume_token(ID);
     jj_consume_token(LPAREN);
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case XINU:
     case TRUE:
     case FALSE:
     case THIS:
     case NEW:
+    case NULL:
     case BANG:
+    case MINUS:
     case LPAREN:
     case INT:
-    case STRING:
+    case STRING_LITERAL:
     case ID:{
       arg = Expression();
 args.add(arg);
@@ -436,7 +446,7 @@ args.add(arg);
           break;
           }
         default:
-          jj_la1[14] = jj_gen;
+          jj_la1[15] = jj_gen;
           break label_11;
         }
         jj_consume_token(COMMA);
@@ -446,67 +456,138 @@ args.add(arg);
       break;
       }
     default:
-      jj_la1[15] = jj_gen;
+      jj_la1[16] = jj_gen;
       ;
     }
     jj_consume_token(RPAREN);
     jj_consume_token(SEMI);
-{if ("" != null) return new Absyn.XinuCallStmt(method.toString(), args);}
+{if ("" != null) return new Absyn.XinuCallStmt(method.image, args);}
     throw new Error("Missing return statement in function");
 }
 
   static final public Absyn.Expr Expression() throws ParseException {Absyn.Expr ex;
-    ex = AndExpression();
+    ex = OrExpression();
 {if ("" != null) return ex;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public Absyn.Expr AndExpression() throws ParseException {Absyn.Expr ex1, ex2;
-    ex1 = LessThanExpression();
+  static final public Absyn.Expr OrExpression() throws ParseException {Absyn.Expr e1, e2;
+    e1 = AndExpression();
     label_12:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case 50:{
+      case OR:{
         ;
         break;
         }
       default:
-        jj_la1[16] = jj_gen;
+        jj_la1[17] = jj_gen;
         break label_12;
       }
-      jj_consume_token(50);
-      ex2 = LessThanExpression();
+      jj_consume_token(OR);
+      e2 = AndExpression();
+e1 = new Absyn.OrExpression(e1, e2);
+    }
+{if ("" != null) return e1;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public Absyn.Expr AndExpression() throws ParseException {Absyn.Expr ex1, ex2;
+    ex1 = EqualityExpression();
+    label_13:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case AND:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[18] = jj_gen;
+        break label_13;
+      }
+      jj_consume_token(AND);
+      ex2 = EqualityExpression();
 ex1 = new Absyn.AndExpression(ex1,ex2);
     }
 {if ("" != null) return ex1;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public Absyn.Expr LessThanExpression() throws ParseException {Absyn.Expr ex1,ex2;
-    ex1 = AdditiveExpression();
-    label_13:
+  static final public Absyn.Expr EqualityExpression() throws ParseException {Absyn.Expr ex1, ex2; Token op;
+    ex1 = LessThanExpression();
+    label_14:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case LESS:{
+      case EQUALS:
+      case NOTEQ:{
         ;
         break;
         }
       default:
-        jj_la1[17] = jj_gen;
-        break label_13;
+        jj_la1[19] = jj_gen;
+        break label_14;
       }
-      jj_consume_token(LESS);
-      ex2 = AdditiveExpression();
-ex1 = new Absyn.LessThan(ex1,ex2);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case EQUALS:{
+        op = jj_consume_token(EQUALS);
+        break;
+        }
+      case NOTEQ:{
+        op = jj_consume_token(NOTEQ);
+        break;
+        }
+      default:
+        jj_la1[20] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      ex2 = LessThanExpression();
+if (op.image.equals("==")) ex1 = new Absyn.EqualExpr(ex1, ex2);
+          else ex1 = new Absyn.NotEqExpr(ex1, ex2);
     }
 {if ("" != null) return ex1;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public Absyn.Expr AdditiveExpression() throws ParseException {Absyn.Expr ex1,ex2;
- Token op;
+  static final public Absyn.Expr LessThanExpression() throws ParseException {Absyn.Expr ex1,ex2; Token op;
+    ex1 = AdditiveExpression();
+    label_15:
+    while (true) {
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case LESS:
+      case GREATER:{
+        ;
+        break;
+        }
+      default:
+        jj_la1[21] = jj_gen;
+        break label_15;
+      }
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case LESS:{
+        op = jj_consume_token(LESS);
+        break;
+        }
+      case GREATER:{
+        op = jj_consume_token(GREATER);
+        break;
+        }
+      default:
+        jj_la1[22] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      ex2 = AdditiveExpression();
+if (op.image.equals("<")) ex1 = new Absyn.LessThan(ex1,ex2);
+          else ex1 = new Absyn.GreaterThan(ex1,ex2);
+    }
+{if ("" != null) return ex1;}
+    throw new Error("Missing return statement in function");
+}
+
+  static final public Absyn.Expr AdditiveExpression() throws ParseException {Absyn.Expr ex1,ex2; Token op;
     ex1 = MultiplilyExpression();
-    label_14:
+    label_16:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case PLUS:
@@ -515,8 +596,8 @@ ex1 = new Absyn.LessThan(ex1,ex2);
         break;
         }
       default:
-        jj_la1[18] = jj_gen;
-        break label_14;
+        jj_la1[23] = jj_gen;
+        break label_16;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case PLUS:{
@@ -528,57 +609,49 @@ ex1 = new Absyn.LessThan(ex1,ex2);
         break;
         }
       default:
-        jj_la1[19] = jj_gen;
+        jj_la1[24] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       ex2 = MultiplilyExpression();
-if (op.image.equals("+")){
-    ex1 = new Absyn.Plus(ex1,ex2);
-
-   }else{
-    ex1 = new Absyn.Minus(ex1,ex2);
-   }
+if (op.image.equals("+")) ex1 = new Absyn.Plus(ex1,ex2);
+            else ex1 = new Absyn.Minus(ex1,ex2);
     }
 {if ("" != null) return ex1;}
     throw new Error("Missing return statement in function");
 }
 
-  static final public Absyn.Expr MultiplilyExpression() throws ParseException {Absyn.Expr ex1, ex2;
-  Token op;
+  static final public Absyn.Expr MultiplilyExpression() throws ParseException {Absyn.Expr ex1, ex2; Token op;
     ex1 = PrefixExpression();
-    label_15:
+    label_17:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case STAR:
-      case 51:{
+      case DIVIDE:{
         ;
         break;
         }
       default:
-        jj_la1[20] = jj_gen;
-        break label_15;
+        jj_la1[25] = jj_gen;
+        break label_17;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case STAR:{
         op = jj_consume_token(STAR);
         break;
         }
-      case 51:{
-        op = jj_consume_token(51);
+      case DIVIDE:{
+        op = jj_consume_token(DIVIDE);
         break;
         }
       default:
-        jj_la1[21] = jj_gen;
+        jj_la1[26] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
       ex2 = PrefixExpression();
-if (op.image.equals("*")){
-    ex1 = new Absyn.Times(ex1,ex2);
-   }else{
-    ex1 = new Absyn.Divide(ex1,ex2);
-   }
+if (op.image.equals("*")) ex1 = new Absyn.Times(ex1,ex2);
+            else ex1 = new Absyn.Divide(ex1,ex2);
     }
 {if ("" != null) return ex1;}
     throw new Error("Missing return statement in function");
@@ -592,20 +665,28 @@ if (op.image.equals("*")){
 {if ("" != null) return new Absyn.Not(ex);}
       break;
       }
+    case MINUS:{
+      jj_consume_token(MINUS);
+      ex = PrefixExpression();
+{if ("" != null) return new Absyn.NegExpr(ex);}
+      break;
+      }
+    case XINU:
     case TRUE:
     case FALSE:
     case THIS:
     case NEW:
+    case NULL:
     case LPAREN:
     case INT:
-    case STRING:
+    case STRING_LITERAL:
     case ID:{
       ex = PostfixExpression();
 {if ("" != null) return ex;}
       break;
       }
     default:
-      jj_la1[22] = jj_gen;
+      jj_la1[27] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -613,10 +694,10 @@ if (op.image.equals("*")){
 }
 
   static final public Absyn.Expr PostfixExpression() throws ParseException {Absyn.Expr ex, index;
- Token id;
- LinkedList<Absyn.Expr> args;
+    Token id;
+    LinkedList<Absyn.Expr> args = new LinkedList<Absyn.Expr>();
     ex = PrimaryExpression();
-    label_16:
+    label_18:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case DOT:
@@ -625,8 +706,8 @@ if (op.image.equals("*")){
         break;
         }
       default:
-        jj_la1[23] = jj_gen;
-        break label_16;
+        jj_la1[28] = jj_gen;
+        break label_18;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case LBRACKET:{
@@ -637,27 +718,22 @@ ex = new Absyn.ArrayLookup(ex,index);
         break;
         }
       default:
-        jj_la1[24] = jj_gen;
-        if (jj_2_4(2)) {
+        jj_la1[29] = jj_gen;
+        if (jj_2_5(3)) {
           jj_consume_token(DOT);
-          jj_consume_token(LENGTH);
-ex = new Absyn.ArrayLength(ex);
-        } else {
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case DOT:{
-            jj_consume_token(DOT);
-            id = jj_consume_token(ID);
-            jj_consume_token(LPAREN);
-            args = ExpressionList();
-            jj_consume_token(RPAREN);
+          id = jj_consume_token(ID);
+          jj_consume_token(LPAREN);
+          args = ExpressionList();
+          jj_consume_token(RPAREN);
 ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
-            break;
-            }
-          default:
-            jj_la1[25] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
-          }
+        } else if (jj_2_6(2)) {
+          jj_consume_token(DOT);
+          id = jj_consume_token(ID);
+if(id.image.equals("length")) { ex = new Absyn.ArrayLength(ex); }
+        else { {if (true) throw new ParseException("Expected length");} }
+        } else {
+          jj_consume_token(-1);
+          throw new ParseException();
         }
       }
     }
@@ -666,15 +742,16 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
 }
 
   static final public Absyn.Expr PrimaryExpression() throws ParseException {Token t;
- Absyn.Expr ex;
+    Absyn.Expr ex;
+    LinkedList<Absyn.Expr> args = new LinkedList<Absyn.Expr>();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case INT:{
       t = jj_consume_token(INT);
 {if ("" != null) return new Absyn.IntegerLiteral(Integer.parseInt(t.image));}
       break;
       }
-    case STRING:{
-      t = jj_consume_token(STRING);
+    case STRING_LITERAL:{
+      t = jj_consume_token(STRING_LITERAL);
 {if ("" != null) return new Absyn.StringLiteral(t.image);}
       break;
       }
@@ -688,9 +765,9 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
 {if ("" != null) return new Absyn.False();}
       break;
       }
-    case ID:{
-      t = jj_consume_token(ID);
-{if ("" != null) return new Absyn.IdentifierExp(t.image);}
+    case NULL:{
+      jj_consume_token(NULL);
+{if ("" != null) return new Absyn.NullExpr();}
       break;
       }
     case THIS:{
@@ -699,8 +776,8 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
       break;
       }
     default:
-      jj_la1[26] = jj_gen;
-      if (jj_2_5(2)) {
+      jj_la1[30] = jj_gen;
+      if (jj_2_7(2)) {
         jj_consume_token(NEW);
         jj_consume_token(INT_TYPE);
         jj_consume_token(LBRACKET);
@@ -717,6 +794,21 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
 {if ("" != null) return new Absyn.NewObject(new Absyn.Identifier(t.image));}
           break;
           }
+        case XINU:{
+          jj_consume_token(XINU);
+          jj_consume_token(DOT);
+          t = jj_consume_token(ID);
+          jj_consume_token(LPAREN);
+          args = ExpressionList();
+          jj_consume_token(RPAREN);
+{if ("" != null) return new Absyn.XinuCallExpr(t.image, args);}
+          break;
+          }
+        case ID:{
+          t = jj_consume_token(ID);
+{if ("" != null) return new Absyn.IdentifierExp(t.image);}
+          break;
+          }
         case LPAREN:{
           jj_consume_token(LPAREN);
           ex = Expression();
@@ -725,7 +817,7 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
           break;
           }
         default:
-          jj_la1[27] = jj_gen;
+          jj_la1[31] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -735,20 +827,23 @@ ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args);
 }
 
   static final public LinkedList<Absyn.Expr> ExpressionList() throws ParseException {LinkedList<Absyn.Expr> li = new LinkedList<Absyn.Expr>();
- Absyn.Expr ex;
+    Absyn.Expr ex;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+    case XINU:
     case TRUE:
     case FALSE:
     case THIS:
     case NEW:
+    case NULL:
     case BANG:
+    case MINUS:
     case LPAREN:
     case INT:
-    case STRING:
+    case STRING_LITERAL:
     case ID:{
       ex = Expression();
 li.add(ex);
-      label_17:
+      label_19:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case COMMA:{
@@ -756,8 +851,8 @@ li.add(ex);
           break;
           }
         default:
-          jj_la1[28] = jj_gen;
-          break label_17;
+          jj_la1[32] = jj_gen;
+          break label_19;
         }
         jj_consume_token(COMMA);
         ex = Expression();
@@ -766,7 +861,7 @@ li.add(ex);
       break;
       }
     default:
-      jj_la1[29] = jj_gen;
+      jj_la1[33] = jj_gen;
       ;
     }
 {if ("" != null) return li;}
@@ -813,372 +908,125 @@ li.add(ex);
     finally { jj_save(4, xla); }
   }
 
-  static private boolean jj_3R_PostfixExpression_371_4_50()
+  static private boolean jj_2_6(int xla)
  {
-    if (jj_scan_token(DOT)) return true;
-    if (jj_scan_token(ID)) return true;
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_3R_ExpressionList_395_2_51()) return true;
-    if (jj_scan_token(RPAREN)) return true;
-    return false;
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_6()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(5, xla); }
   }
 
-  static private boolean jj_3R_PostfixExpression_370_4_49()
+  static private boolean jj_2_7(int xla)
  {
-    if (jj_scan_token(LBRACKET)) return true;
-    if (jj_3R_Expression_295_2_23()) return true;
-    if (jj_scan_token(RBRACKET)) return true;
-    return false;
+    jj_la = xla; jj_lastpos = jj_scanpos = token;
+    try { return (!jj_3_7()); }
+    catch(LookaheadSuccess ls) { return true; }
+    finally { jj_save(6, xla); }
   }
 
-  static private boolean jj_3R_PostfixExpression_370_4_40()
+  static private boolean jj_3R_Type_220_5_20()
  {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_PostfixExpression_370_4_49()) {
-    jj_scanpos = xsp;
-    if (jj_3_4()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PostfixExpression_371_4_50()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3_2()
- {
-    if (jj_3R_VarDeclaration_209_2_18()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_PostfixExpression_369_2_38()
- {
-    if (jj_3R_PrimaryExpression_380_4_39()) return true;
+    if (jj_3R_BaseType_227_7_22()) return true;
     Token xsp;
     while (true) {
       xsp = jj_scanpos;
-      if (jj_3R_PostfixExpression_370_4_40()) { jj_scanpos = xsp; break; }
+      if (jj_3R_Type_220_25_23()) { jj_scanpos = xsp; break; }
     }
     return false;
   }
 
-  static private boolean jj_3R_PrefixExpression_358_4_37()
+  static private boolean jj_3R_ArrayAssignStmt_287_5_21()
  {
-    if (jj_3R_PostfixExpression_369_2_38()) return true;
+    if (jj_scan_token(ID)) return true;
+    if (jj_scan_token(LBRACKET)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrefixExpression_354_2_34()
+  static private boolean jj_3R_Type_220_25_23()
  {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_PrefixExpression_354_2_36()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrefixExpression_358_4_37()) return true;
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_PrefixExpression_354_2_36()
- {
-    if (jj_scan_token(BANG)) return true;
-    if (jj_3R_PrefixExpression_354_2_34()) return true;
+    if (jj_scan_token(LBRACKET)) return true;
+    if (jj_scan_token(RBRACKET)) return true;
     return false;
   }
 
   static private boolean jj_3_4()
  {
+    if (jj_3R_ArrayAssignStmt_287_5_21()) return true;
+    return false;
+  }
+
+  static private boolean jj_3_6()
+ {
     if (jj_scan_token(DOT)) return true;
-    if (jj_scan_token(LENGTH)) return true;
-    return false;
-  }
-
-  static private boolean jj_3_1()
- {
-    if (jj_3R_VarDeclaration_209_2_18()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_MultiplilyExpression_340_3_35()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(27)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(51)) return true;
-    }
-    if (jj_3R_PrefixExpression_354_2_34()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_MultiplilyExpression_338_2_32()
- {
-    if (jj_3R_PrefixExpression_354_2_34()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_MultiplilyExpression_340_3_35()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_VarDeclaration_209_30_20()
- {
-    if (jj_scan_token(ASSIGN)) return true;
-    if (jj_3R_Expression_295_2_23()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_BaseType_230_4_26()
- {
     if (jj_scan_token(ID)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_BaseType_229_4_25()
- {
-    if (jj_scan_token(BOOLEAN_TYPE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_BaseType_228_4_24()
- {
-    if (jj_scan_token(INT_TYPE)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_BaseType_228_4_21()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_BaseType_228_4_24()) {
-    jj_scanpos = xsp;
-    if (jj_3R_BaseType_229_4_25()) {
-    jj_scanpos = xsp;
-    if (jj_3R_BaseType_230_4_26()) return true;
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_AdditiveExpression_321_3_33()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_scan_token(28)) {
-    jj_scanpos = xsp;
-    if (jj_scan_token(29)) return true;
-    }
-    if (jj_3R_MultiplilyExpression_338_2_32()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_AdditiveExpression_319_2_30()
- {
-    if (jj_3R_MultiplilyExpression_338_2_32()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_AdditiveExpression_321_3_33()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_Type_219_4_22()
- {
-    if (jj_scan_token(LBRACKET)) return true;
-    if (jj_scan_token(RBRACKET)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_Type_218_2_19()
- {
-    if (jj_3R_BaseType_228_4_21()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_Type_219_4_22()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_LessThanExpression_310_3_31()
- {
-    if (jj_scan_token(LESS)) return true;
-    if (jj_3R_AdditiveExpression_319_2_30()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_LessThanExpression_309_2_28()
- {
-    if (jj_3R_AdditiveExpression_319_2_30()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_LessThanExpression_310_3_31()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_ExpressionList_397_5_53()
- {
-    if (jj_scan_token(COMMA)) return true;
-    if (jj_3R_Expression_295_2_23()) return true;
-    return false;
-  }
-
-  static private boolean jj_3_3()
- {
-    if (jj_3R_VarDeclaration_209_2_18()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_VarDeclaration_209_2_18()
- {
-    if (jj_3R_Type_218_2_19()) return true;
-    if (jj_scan_token(ID)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_VarDeclaration_209_30_20()) jj_scanpos = xsp;
-    if (jj_scan_token(SEMI)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_AndExpression_302_3_29()
- {
-    if (jj_scan_token(50)) return true;
-    if (jj_3R_LessThanExpression_309_2_28()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_ExpressionList_396_3_52()
- {
-    if (jj_3R_Expression_295_2_23()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_ExpressionList_397_5_53()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_AndExpression_301_2_27()
- {
-    if (jj_3R_LessThanExpression_309_2_28()) return true;
-    Token xsp;
-    while (true) {
-      xsp = jj_scanpos;
-      if (jj_3R_AndExpression_302_3_29()) { jj_scanpos = xsp; break; }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_ExpressionList_395_2_51()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_ExpressionList_396_3_52()) jj_scanpos = xsp;
-    return false;
-  }
-
-  static private boolean jj_3R_PrimaryExpression_388_4_48()
- {
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_3R_Expression_295_2_23()) return true;
-    if (jj_scan_token(RPAREN)) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_Expression_295_2_23()
- {
-    if (jj_3R_AndExpression_301_2_27()) return true;
-    return false;
-  }
-
-  static private boolean jj_3R_PrimaryExpression_387_4_47()
- {
-    if (jj_scan_token(NEW)) return true;
-    if (jj_scan_token(ID)) return true;
-    if (jj_scan_token(LPAREN)) return true;
-    if (jj_scan_token(RPAREN)) return true;
     return false;
   }
 
   static private boolean jj_3_5()
  {
+    if (jj_scan_token(DOT)) return true;
+    if (jj_scan_token(ID)) return true;
+    if (jj_scan_token(LPAREN)) return true;
+    return false;
+  }
+
+  static private boolean jj_3_7()
+ {
     if (jj_scan_token(NEW)) return true;
     if (jj_scan_token(INT_TYPE)) return true;
-    if (jj_scan_token(LBRACKET)) return true;
-    if (jj_3R_Expression_295_2_23()) return true;
-    if (jj_scan_token(RBRACKET)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_385_4_46()
+  static private boolean jj_3_3()
  {
-    if (jj_scan_token(THIS)) return true;
+    if (jj_3R_Type_220_5_20()) return true;
+    if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_384_4_45()
+  static private boolean jj_3R_BaseType_229_7_26()
  {
     if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_383_4_44()
+  static private boolean jj_3_1()
  {
-    if (jj_scan_token(FALSE)) return true;
+    if (jj_3R_Type_220_5_20()) return true;
+    if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_382_4_43()
+  static private boolean jj_3R_BaseType_228_7_25()
  {
-    if (jj_scan_token(TRUE)) return true;
+    if (jj_scan_token(BOOLEAN_TYPE)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_381_4_42()
+  static private boolean jj_3_2()
  {
-    if (jj_scan_token(STRING)) return true;
+    if (jj_3R_Type_220_5_20()) return true;
+    if (jj_scan_token(ID)) return true;
     return false;
   }
 
-  static private boolean jj_3R_PrimaryExpression_380_4_39()
+  static private boolean jj_3R_BaseType_227_7_24()
+ {
+    if (jj_scan_token(INT_TYPE)) return true;
+    return false;
+  }
+
+  static private boolean jj_3R_BaseType_227_7_22()
  {
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_PrimaryExpression_380_4_41()) {
+    if (jj_3R_BaseType_227_7_24()) {
     jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_381_4_42()) {
+    if (jj_3R_BaseType_228_7_25()) {
     jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_382_4_43()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_383_4_44()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_384_4_45()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_385_4_46()) {
-    jj_scanpos = xsp;
-    if (jj_3_5()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_387_4_47()) {
-    jj_scanpos = xsp;
-    if (jj_3R_PrimaryExpression_388_4_48()) return true;
+    if (jj_3R_BaseType_229_7_26()) return true;
     }
     }
-    }
-    }
-    }
-    }
-    }
-    }
-    return false;
-  }
-
-  static private boolean jj_3R_PrimaryExpression_380_4_41()
- {
-    if (jj_scan_token(INT)) return true;
     return false;
   }
 
@@ -1194,7 +1042,7 @@ li.add(ex);
   static private Token jj_scanpos, jj_lastpos;
   static private int jj_la;
   static private int jj_gen;
-  static final private int[] jj_la1 = new int[30];
+  static final private int[] jj_la1 = new int[34];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -1202,12 +1050,12 @@ li.add(ex);
 	   jj_la1_init_1();
 	}
 	private static void jj_la1_init_0() {
-	   jj_la1_0 = new int[] {0x100,0x58000,0x0,0x200,0x0,0x3000000,0x58000,0x80000000,0x0,0x3000000,0x58000,0x58000,0x20000,0x80000000,0x0,0x4780000,0x0,0x40000000,0x30000000,0x30000000,0x8000000,0x8000000,0x4780000,0x0,0x0,0x0,0x380000,0x400000,0x0,0x4780000,};
+	   jj_la1_0 = new int[] {0x100,0x58000,0x8000000,0x200,0x2000000,0x0,0x1800000,0x58000,0x0,0x0,0x1800000,0x50000,0x8000,0x58000,0x20000,0x0,0x4788000,0x20000000,0x40000000,0x80000000,0x80000000,0x0,0x0,0x0,0x0,0x0,0x0,0x4788000,0x0,0x0,0x4380000,0x408000,0x0,0x4788000,};
 	}
 	private static void jj_la1_init_1() {
-	   jj_la1_1 = new int[] {0x0,0x802,0x10000,0x0,0x100,0x800,0x802,0x0,0x20,0x800,0x802,0x802,0x0,0x20,0x100,0xe08,0x40000,0x0,0x0,0x0,0x80000,0x80000,0xe08,0x21,0x20,0x1,0xe00,0x8,0x100,0xe08,};
+	   jj_la1_1 = new int[] {0x0,0x100400,0x0,0x0,0x0,0x20000,0x100000,0x100400,0x100,0x4000,0x100000,0x400,0x100000,0x100400,0x0,0x20000,0x1c1022,0x0,0x0,0x1,0x1,0xc0,0xc0,0x30,0x30,0xc,0xc,0x1c1022,0x4200,0x4000,0xc0000,0x101000,0x20000,0x1c1022,};
 	}
-  static final private JJCalls[] jj_2_rtns = new JJCalls[5];
+  static final private JJCalls[] jj_2_rtns = new JJCalls[7];
   static private boolean jj_rescan = false;
   static private int jj_gc = 0;
 
@@ -1229,7 +1077,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1244,7 +1092,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1262,7 +1110,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1281,7 +1129,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1298,7 +1146,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1308,7 +1156,7 @@ li.add(ex);
 	 token = new Token();
 	 jj_ntk = -1;
 	 jj_gen = 0;
-	 for (int i = 0; i < 30; i++) jj_la1[i] = -1;
+	 for (int i = 0; i < 34; i++) jj_la1[i] = -1;
 	 for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -1439,12 +1287,12 @@ li.add(ex);
   /** Generate ParseException. */
   static public ParseException generateParseException() {
 	 jj_expentries.clear();
-	 boolean[] la1tokens = new boolean[52];
+	 boolean[] la1tokens = new boolean[57];
 	 if (jj_kind >= 0) {
 	   la1tokens[jj_kind] = true;
 	   jj_kind = -1;
 	 }
-	 for (int i = 0; i < 30; i++) {
+	 for (int i = 0; i < 34; i++) {
 	   if (jj_la1[i] == jj_gen) {
 		 for (int j = 0; j < 32; j++) {
 		   if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -1456,7 +1304,7 @@ li.add(ex);
 		 }
 	   }
 	 }
-	 for (int i = 0; i < 52; i++) {
+	 for (int i = 0; i < 57; i++) {
 	   if (la1tokens[i]) {
 		 jj_expentry = new int[1];
 		 jj_expentry[0] = i;
@@ -1490,7 +1338,7 @@ li.add(ex);
 
   static private void jj_rescan_token() {
 	 jj_rescan = true;
-	 for (int i = 0; i < 5; i++) {
+	 for (int i = 0; i < 7; i++) {
 	   try {
 		 JJCalls p = jj_2_rtns[i];
 
@@ -1503,6 +1351,8 @@ li.add(ex);
 			   case 2: jj_3_3(); break;
 			   case 3: jj_3_4(); break;
 			   case 4: jj_3_5(); break;
+			   case 5: jj_3_6(); break;
+			   case 6: jj_3_7(); break;
 			 }
 		   }
 		   p = p.next;

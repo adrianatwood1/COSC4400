@@ -204,7 +204,8 @@ public class PrintVisitor implements Visitor
         indent();
         out.print("AssignStmt(");
         indentCount++;
-        n.id.accept(this);
+        indent();
+        out.print("IdentifierExpr(" + n.id.s + ")");
         n.ex.accept(this);
         indentCount--;
         out.print(")");
@@ -212,10 +213,16 @@ public class PrintVisitor implements Visitor
 
     public void visit(ArrayAssign n){
         indent();
-        out.print("ArrayAssignStmt(");
+        out.print("AssignStmt(");
         indentCount++;
-        n.i.accept(this);
+        indent();
+        out.print("ArrayExpr(");
+        indentCount++;
+        indent();
+        out.print("IdentifierExpr(" + n.i.s + ")");
         n.e1.accept(this);
+        indentCount--;
+        out.print(")");
         n.e2.accept(this);
         indentCount--;
         out.print(")");
@@ -265,9 +272,11 @@ public class PrintVisitor implements Visitor
 
     public void visit(ArrayLength n){
         indent();
-        out.print("LengthExpr(");
+        out.print("FieldExpr(");
         indentCount++;
         n.ex.accept(this);
+        indent();
+        out.print("length");
         indentCount--;
         out.print(")");
     }
@@ -286,9 +295,14 @@ public class PrintVisitor implements Visitor
 
     public void visit(NewArray n){
         indent();
-        out.print("NewArrayExpr(");
+        out.print("NewArrayExpr(IntegerType");
+        indentCount++;
+        indent();
+        out.print("AbstractList(");
         indentCount++;
         n.ex.accept(this);
+        indentCount--;
+        out.print(")");
         indentCount--;
         out.print(")");
     }
@@ -300,5 +314,36 @@ public class PrintVisitor implements Visitor
         out.print("IdentifierType(" + n.id.s + ")");
         indentCount--;
         out.print(")");
+
     }
+    public void visit(NullExpr n){
+        indent();
+        out.print("NullExpr");
+    }
+
+    public void visit(EqualExpr n){
+        printBinaryExpr("EqualExpr", n.ex1, n.ex2);
+        }
+    public void visit(NotEqExpr n){
+        printBinaryExpr("EqualExpr", n.ex1, n.ex2);
+    }
+    public void visit(NegExpr n){
+        indent();
+        out.print("NegExpr(");
+        indentCount++;
+        n.ex1.accept(this);
+        indentCount--;
+        out.print(")");
+    }
+    public void visit(XinuCallExpr n) {
+        indent();
+        out.print("XinuCallExpr(" + n.method);
+        indentCount++;
+        visit(n.args);
+        indentCount--;
+        out.print(")");
+    }
+
+
+
 }

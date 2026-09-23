@@ -14,6 +14,8 @@ import java.io.FileNotFoundException;
  * Instructor Dr.Brylow
  * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu patrick.panarese@marquette.edu
  * 
+ * Note: please look at this file for submission!
+ * 
  * Gemini was used to help clean up constant formatting issues within print.visitor file, prompt was to give a guide to the syntax of the different methods that were used. All code was changed by us.
  */
 
@@ -41,10 +43,8 @@ public class Main
 	} catch (FileNotFoundException e){
 		System.out.println("Error: File not found -> " + (args.length > 0 ? args[0] : "unknown"));
 		System.exit(-1);
-	} catch (Exception e){
-		System.out.println("Parse/Compilation Error: " + e.toString());
-		e.printStackTrace();
-		System.exit(-1);
+	} catch (ParseException e){
+		System.out.println(e.toString());
 	}
     }
 }

@@ -46,5 +46,11 @@ public interface Visitor
     public void visit(This ast);
     public void visit(Plus ast);
     public void visit(OrExpression ast);
+    public void visit(NullExpr ast);
+    public void visit(NotEqExpr ast);
+    public void visit(EqualExpr ast);
+    public void visit(NegExpr ast);
+    public void visit(XinuCallExpr ast);
+
 
 }
