@@ -1,8 +1,12 @@
 #!/bin/bash
-make
+
+# Clean and build, exit immediately if compilation fails
+make clean && make || { echo "Build failed. Aborting tests."; exit 1; }
 
 for file in testcases/*.java; do
-    java Parse.Main < "$file" > "our_output.ast"
+    # Added explicit classpath matching the Makefile JFLAGS
+    java -cp . Parse.Main < "$file" > "our_output.ast"
+    
     ~brylow/cosc4400/Projects/mjparser - < "$file" > "brylow_output.ast"
     
     diff -w -u --color=always "our_output.ast" "brylow_output.ast" > diff_result.txt
@@ -19,4 +23,5 @@ for file in testcases/*.java; do
     fi
 done
 
-rm our_output.ast brylow_output.ast diff_result.txt
+# Cleanup test artifacts
+rm -f our_output.ast brylow_output.ast diff_result.txt
