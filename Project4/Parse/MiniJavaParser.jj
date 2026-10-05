@@ -31,6 +31,12 @@ SKIP :
 | < "/*" (~["*"])* "*" ("*" | (~["*","/"] (~["*"])* "*"))* "/" >
 }
 
+SKIP :
+{
+  < "package" (~[";"])* ";" >
+| < "import" (~[";"])* ";" >
+}
+
 /*************************/
 /* Lexical Specification */
 /*************************/
@@ -125,7 +131,10 @@ Absyn.Program Goal() :
     LinkedList<Absyn.ClassDecl> cl = new LinkedList<Absyn.ClassDecl>();
 }
 {
-    MainClassDeclaration(cl) ( ClassDeclaration(cl) )* <EOF>
+    ( LOOKAHEAD( [ <PUBLIC> ] <CLASS> <ID> <LBRACE> <PUBLIC> <STATIC> <VOID> <MAIN> ) 
+      MainClassDeclaration(cl) 
+    | ClassDeclaration(cl) 
+    )* <EOF>
     { return new Absyn.Program(cl); }
 }
 
@@ -142,13 +151,13 @@ Absyn.ClassDecl MainClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
     LinkedList<Absyn.Stmt> stmts         = new LinkedList<Absyn.Stmt>();
 }
 {
-  <CLASS> name = <ID> "{" <PUBLIC> <STATIC> <VOID> <MAIN>
-    "(" <STRING> "[" "]" arg = <ID> ")"
+    [ <PUBLIC> ] <CLASS> name = <ID> <LBRACE> <PUBLIC> <STATIC> <VOID> <MAIN>
+    <LPAREN> <STRING> <LBRACKET> <RBRACKET> arg = <ID> <RPAREN>
     { formals.add(new Absyn.Formal(new Absyn.ArrayType(new Absyn.IdentifierType("String")), arg.image)); }
-    "{" 
+    <LBRACE> 
     ( LOOKAHEAD( Type() <ID> ) var = VarDeclaration() { locals.add(var); } )*
     ( stmt = Statement() { stmts.add(stmt); } )*
-    "}" "}"
+    <RBRACE> <RBRACE>
     {
         methods.add(new Absyn.MethodDecl(null, false, "main", formals, locals, stmts, new Absyn.IntegerLiteral(0)));
         cd = new Absyn.ClassDecl(name.image, null, new LinkedList<Absyn.VarDecl>(), methods);
@@ -167,16 +176,15 @@ void ClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
     LinkedList<Absyn.MethodDecl> method = new LinkedList<Absyn.MethodDecl>();
 }
 {
-    <CLASS> name = <ID> [ <EXTENDS> parent = <ID> ] "{"
+    [ <PUBLIC> ] <CLASS> name = <ID> [ <EXTENDS> parent = <ID> ] <LBRACE>
     ( LOOKAHEAD( Type() <ID> ) v = VarDeclaration() { field.add(v); } )*
-    ( m = MethodDeclaration() {method.add(m); })*
-    "}"
+    ( m = MethodDeclaration() { method.add(m); } )*
+    <RBRACE>
     {
         String pName = (parent != null) ? parent.image : null;
-        cl.add(new Absyn.ClassDecl(name.image,pName,field,method));
+        cl.add(new Absyn.ClassDecl(name.image, pName, field, method));
     }
 }
-
 // MethodDeclaration ::= "public" Type Identifier "(" ( Type Identifier ( "," Type Identifier )* )? ")" "{" ( VarDeclaration )* ( Statement )* "return" Expression ";" "}"
 Absyn.MethodDecl MethodDeclaration() :
 {
