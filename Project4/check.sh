@@ -12,11 +12,11 @@ echo "----------------------------------------"
 for file in testcases/*.java; do
     echo "Testing $file..."
     
-    # 1. Run your Semantic compiler
+    # 1. Run your Semantic compiler 
     java Semant.Main "$file" > "${file}.myout" 2> "${file}.myerr"
     
-    # 2. Run Dr. Brylow's reference compiler
-    ~brylow/cosc4400/bin/mjchecker "$file" > "${file}.hisout" 2> "${file}.hiserr"
+    # 2. Run Dr. Brylow's reference pipeline (Parser piped into Checker)
+    ~brylow/cosc4400/Projects/mjparser "$file" | ~brylow/cosc4400/Projects/mjchecker -c - > "${file}.hisout" 2> "${file}.hiserr"
     
     # 3. Combine his stdout and stderr to serve as the master expected output
     cat "${file}.hisout" "${file}.hiserr" > "${file}.expected"
@@ -34,11 +34,7 @@ for file in testcases/*.java; do
         cat "${file}.mycombined"
         
         echo -e "\033[0;36m  --- HIS EXPECTED OUTPUT (mjchecker) --- \033[0m"
-        if [ -s "${file}.expected" ]; then
-            cat "${file}.expected"
-        else
-            echo "  (mjchecker generated no output - file may be valid or missing a print flag)"
-        fi
+        cat "${file}.expected"
         
         echo "  ----------------------------------------"
     else

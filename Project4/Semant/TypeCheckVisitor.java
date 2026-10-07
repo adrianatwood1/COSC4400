@@ -23,6 +23,25 @@ public class TypeCheckVisitor implements Visitor {
         this.global = global;
     }
     
+    // Walk up the parent chain to see if childType extends parentType
+    private boolean isSubclass(Type childType, Type parentType) {
+        if (childType.toString().equals(parentType.toString())) return true;
+        
+        if (childType instanceof CLASS && parentType instanceof CLASS) {
+            String childName = ((CLASS) childType).name;
+            String parentName = ((CLASS) parentType).name;
+            
+            ClassSymbolTable childClass = global.getClass(childName);
+            while (childClass != null && childClass.parentClassName != null) {
+                if (childClass.parentClassName.equals(parentName)) {
+                    return true;
+                }
+                childClass = global.getClass(childClass.parentClassName);
+            }
+        }
+        return false;
+    }
+
     //scope managers
 
     public void visit(Program ast) {
@@ -54,11 +73,8 @@ public class TypeCheckVisitor implements Visitor {
         if (ast.returnVal != null) {
             ast.returnVal.accept(this);
             if (currType != null && currMethod.returnType != null) {
-                boolean isValid = currType.coerceTo(currMethod.returnType);
-                
-                if (!isValid && currType instanceof CLASS && currMethod.returnType instanceof CLASS) {
-                    isValid = currType.toString().equals(currMethod.returnType.toString());
-                }
+                // allow upcasting on return types
+                boolean isValid = isSubclass(currType, currMethod.returnType);
 
                 if (!isValid && !ast.name.equals("main")) {
                     System.err.println("Type Error: Return type mismatch in method " + ast.name);
@@ -79,14 +95,13 @@ public class TypeCheckVisitor implements Visitor {
         }
         ast.ex.accept(this);
         
-        boolean isValid = currType.coerceTo(lhsType);
-        
-        if (!isValid && currType instanceof CLASS && lhsType instanceof CLASS) {
-            isValid = currType.toString().equals(lhsType.toString());
-        }
+        // allow upcasting assignments (Child to Parent)
+        boolean isValid = isSubclass(currType, lhsType);
         
         if (!isValid) {
-            System.err.println("Type Error: Cannot assign " + currType + " to variable " + ast.id.s);
+            // grab the raw class names without "OBJECT()" wrappers for cleaner errors
+            String cTypeStr = currType instanceof CLASS ? ((CLASS)currType).name : currType.toString();
+            System.err.println("Type Error: Cannot assign " + cTypeStr + " to variable " + ast.id.s);
         }
     }
 
