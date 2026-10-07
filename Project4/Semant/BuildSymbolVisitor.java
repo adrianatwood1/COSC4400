@@ -1,3 +1,5 @@
+package Semant;
+
 import Absyn.*;
 import Types.ARRAY;
 import Types.BOOLEAN;
@@ -8,6 +10,7 @@ import Types.INT;
 import Types.MethodSymbolTable;
 import Types.Type;
 import Types.VOID;
+
 
 public class BuildSymbolVisitor implements Visitor { 
     private GlobalSymbolTable global;

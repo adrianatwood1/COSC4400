@@ -1,27 +1,53 @@
 #!/bin/bash
 
-# Clean and build, exit immediately if compilation fails
-make clean && make || { echo "Build failed. Aborting tests."; exit 1; }
+echo "Compiling project..."
+make
+if [ $? -ne 0 ]; then
+    echo "Make failed. Stopping tests."
+    exit 1
+fi
+echo "Compilation successful. Running tests..."
+echo "----------------------------------------"
 
 for file in testcases/*.java; do
-    # Added explicit classpath matching the Makefile JFLAGS
-    java -cp . Parse.Main < "$file" > "our_output.ast"
+    echo "Testing $file..."
     
-    ~brylow/cosc4400/Projects/mjparser - < "$file" > "brylow_output.ast"
+    # 1. Run your Semantic compiler
+    java Semant.Main "$file" > "${file}.myout" 2> "${file}.myerr"
     
-    diff -w -u --color=always "our_output.ast" "brylow_output.ast" > diff_result.txt
+    # 2. Run Dr. Brylow's reference compiler
+    ~brylow/cosc4400/bin/mjchecker "$file" > "${file}.hisout" 2> "${file}.hiserr"
     
-    if [ -s diff_result.txt ]; then
-        echo "========================================"
-        echo "FAIL: $file"
-        echo "Red (-) is your output. Green (+) is Brylow's expected output."
-        echo "----------------------------------------"
-        cat diff_result.txt
-        echo "========================================"
-    else
-        echo "PASS: $file"
-    fi
-done
+    # 3. Combine his stdout and stderr to serve as the master expected output
+    cat "${file}.hisout" "${file}.hiserr" > "${file}.expected"
+    
+    # 4. Combine your stdout and stderr for the comparison
+    cat "${file}.myout" "${file}.myerr" > "${file}.mycombined"
 
-# Cleanup test artifacts
-rm -f our_output.ast brylow_output.ast diff_result.txt
+    # 5. Diff the combined outputs
+    diff -w "${file}.mycombined" "${file}.expected" > "${file}.diff"
+    
+    if [ -s "${file}.diff" ]; then
+        echo -e "\033[0;31m  [FAIL] Output does not match mjchecker!\033[0m"
+        
+        echo -e "\033[0;36m  --- YOUR OUTPUT --- \033[0m"
+        cat "${file}.mycombined"
+        
+        echo -e "\033[0;36m  --- HIS EXPECTED OUTPUT (mjchecker) --- \033[0m"
+        if [ -s "${file}.expected" ]; then
+            cat "${file}.expected"
+        else
+            echo "  (mjchecker generated no output - file may be valid or missing a print flag)"
+        fi
+        
+        echo "  ----------------------------------------"
+    else
+        echo -e "\033[0;32m  [PASS] Output perfectly matches mjchecker.\033[0m"
+    fi
+    
+    # Clean up temporary test files
+    rm "${file}.diff" "${file}.myout" "${file}.myerr" "${file}.hisout" "${file}.hiserr" "${file}.expected" "${file}.mycombined" 2>/dev/null
+    
+    echo "----------------------------------------"
+done
+echo "Testing complete!"

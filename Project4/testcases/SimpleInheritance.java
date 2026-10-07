@@ -1,6 +1,6 @@
 class SimpleInheritance {
     public static void main(String[] a) {
-        System.out.println(new SubClass().run());
+        Xinu.printint(new SubClass().run());
     }
 }
 

@@ -1,6 +1,9 @@
+package Semant;
 
 import Absyn.*;
+import Types.ARRAY;
 import Types.BOOLEAN;
+import Types.CLASS;
 import Types.ClassSymbolTable;
 import Types.GlobalSymbolTable;
 import Types.INT;
@@ -47,10 +50,22 @@ public class TypeCheckVisitor implements Visitor {
                 ((Visitable) ast.stmts.get(i)).accept(this);
             }
         }
-        ast.returnVal.accept(this);
-        if (!currType.coerceTo(currMethod.returnType)) {
-            System.err.println("Type Error: Return type mismatch in method " + ast.name);
+        
+        if (ast.returnVal != null) {
+            ast.returnVal.accept(this);
+            if (currType != null && currMethod.returnType != null) {
+                boolean isValid = currType.coerceTo(currMethod.returnType);
+                
+                if (!isValid && currType instanceof CLASS && currMethod.returnType instanceof CLASS) {
+                    isValid = currType.toString().equals(currMethod.returnType.toString());
+                }
+
+                if (!isValid && !ast.name.equals("main")) {
+                    System.err.println("Type Error: Return type mismatch in method " + ast.name);
+                }
+            }
         }
+        
         currMethod = null;
     }
 
@@ -63,7 +78,14 @@ public class TypeCheckVisitor implements Visitor {
             return;
         }
         ast.ex.accept(this);
-        if (!currType.coerceTo(lhsType)) {
+        
+        boolean isValid = currType.coerceTo(lhsType);
+        
+        if (!isValid && currType instanceof CLASS && lhsType instanceof CLASS) {
+            isValid = currType.toString().equals(lhsType.toString());
+        }
+        
+        if (!isValid) {
             System.err.println("Type Error: Cannot assign " + currType + " to variable " + ast.id.s);
         }
     }
@@ -162,14 +184,14 @@ public class TypeCheckVisitor implements Visitor {
     public void visit(OrExpression ast) { currType = new BOOLEAN(); }
     public void visit(Not ast) { currType = new BOOLEAN(); }
     public void visit(ArrayAssign ast) {}
-    public void visit(ArrayLookup ast) {}
-    public void visit(ArrayLength ast) { currType = new INT(); }
-    public void visit(Call ast) {}
-    public void visit(NewArray ast) {}
-    public void visit(NewObject ast) {}
     public void visit(NullExpr ast) { currType = new NIL(); }
     public void visit(EqualExpr ast) { currType = new BOOLEAN(); }
     public void visit(NotEqExpr ast) { currType = new BOOLEAN(); }
     public void visit(NegExpr ast) { currType = new INT(); }
     public void visit(XinuCallExpr ast) {}
+    public void visit(ArrayLength ast) { currType = new INT(); }
+    public void visit(ArrayLookup ast) { currType = new INT(); }
+    public void visit(Call ast) { currType = new INT(); }
+    public void visit(NewArray ast) { currType = new ARRAY(new INT()); }
+    public void visit(NewObject ast) { currType = new CLASS(ast.id.s); }
 }

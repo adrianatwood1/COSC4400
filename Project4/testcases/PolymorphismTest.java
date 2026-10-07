@@ -1,25 +1,19 @@
 class PolymorphismTest {
     public static void main(String[] a) {
-        System.out.println(new PolyDemo().start());
+        Xinu.printint(new PolyDemo().start());
     }
 }
 
 class Animal {
-    public int speak() {
-        return 0;
-    }
+    public int speak() { return 0; }
 }
 
 class Dog extends Animal {
-    public int speak() {
-        return 1;
-    }
+    public int speak() { return 1; }
 }
 
 class Cat extends Animal {
-    public int speak() {
-        return 2;
-    }
+    public int speak() { return 2; }
 }
 
 class PolyDemo {
@@ -31,8 +25,8 @@ class PolyDemo {
         a1 = new Dog();
         a2 = new Cat();
         
-        System.out.println(a1.speak());
-        System.out.println(a2.speak());
+        Xinu.printint(a1.speak());
+        Xinu.printint(a2.speak());
         
         result = 99;
         return result;

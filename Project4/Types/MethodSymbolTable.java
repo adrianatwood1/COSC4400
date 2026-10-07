@@ -5,8 +5,9 @@ import java.util.*;
 public class MethodSymbolTable {
     public String name;
     public Type returnType;
+    
     public Map<String, Type> params = new LinkedHashMap<>(); 
-    public Map<String, Type> locals = new HashMap<>();
+    public Map<String, Type> locals = new LinkedHashMap<>();
     public ClassSymbolTable parentClass;
 
     public MethodSymbolTable(String name, Type returnType, ClassSymbolTable parentClass) {
@@ -27,8 +28,7 @@ public class MethodSymbolTable {
         return true;
     }
 
-    //our shadowing logic by checking inheritance by scope!!!
-
+    // our shadowing logic by checking inheritance by scope!!!
     public Type lookupVariable(String varName, GlobalSymbolTable global) {
         if (locals.containsKey(varName)) {
             return locals.get(varName);
