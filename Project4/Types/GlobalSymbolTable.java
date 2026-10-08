@@ -1,12 +1,17 @@
 package Types;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class GlobalSymbolTable {
     public Map<String, ClassSymbolTable> classes = new LinkedHashMap<>();
 
-    public void addClass(String name, ClassSymbolTable cst) {
-        classes.put(name, cst);
+    public boolean addClass(String name, ClassSymbolTable classTable) {
+        if (classes.containsKey(name)) {
+            return false;
+        }
+        classes.put(name, classTable);
+        return true;
     }
 
     public ClassSymbolTable getClass(String name) {
@@ -16,19 +21,16 @@ public class GlobalSymbolTable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("\n"); 
-        int count = 0;
+        sb.append("\n");
         
-        // stringing all the class tables together in order
-        for (ClassSymbolTable cst : classes.values()) {
-            sb.append(cst.toString());
-            count++;
-            // only add the double newline if we arent at the very end
-            if (count < classes.size()) {
+        int i = 0;
+        for (ClassSymbolTable c : classes.values()) {
+            sb.append(c.toString());
+            if (i < classes.size() - 1) {
                 sb.append("\n\n");
             }
+            i++;
         }
-        sb.append("\n");
         return sb.toString();
     }
 }

@@ -14,7 +14,6 @@ import java.io.InputStream;
  * Instructor Dr.Brylow
  * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu  patrick.panarese@marquette.edu
  */
-
 public class Main {
     public static void main(String[] args) {
         try {
@@ -28,18 +27,16 @@ public class Main {
             
             GlobalSymbolTable global = new GlobalSymbolTable();
             
-            // Passes 1 & 2: Build the local class stuff
             ast.accept(new BuildSymbolVisitor(global));
             
-            // Pass 3: Follow the chain of inheritance to assemble objects 
             for (String className : global.classes.keySet()) {
                 global.getClass(className).assembleInheritance(global);
             }
             
-            // Pass 4: Actual type checking
             ast.accept(new TypeCheckVisitor(global));
 
-            System.out.println(global.toString());
+            String finalOutput = global.toString().replace("\r", "");
+            System.out.println(finalOutput);
 
         } catch (ParseException e) {
             System.err.println("Parse Error: " + e.getMessage());

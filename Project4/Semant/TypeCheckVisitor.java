@@ -77,7 +77,7 @@ public class TypeCheckVisitor implements Visitor {
                 boolean isValid = isSubclass(currType, currMethod.returnType);
 
                 if (!isValid && !ast.name.equals("main")) {
-                    System.err.println("Type Error: Return type mismatch in method " + ast.name);
+                    System.out.println("Type Error: Return type mismatch in method " + ast.name);
                 }
             }
         }
@@ -90,7 +90,7 @@ public class TypeCheckVisitor implements Visitor {
     public void visit(Assign ast) {
         Type lhsType = currMethod.lookupVariable(ast.id.s, global);
         if (lhsType == null) {
-            System.err.println("Type Error: Undeclared variable " + ast.id.s);
+            System.out.println("Type Error: Undeclared variable " + ast.id.s);
             return;
         }
         ast.ex.accept(this);
@@ -101,14 +101,14 @@ public class TypeCheckVisitor implements Visitor {
         if (!isValid) {
             // grab the raw class names without "OBJECT()" wrappers for cleaner errors
             String cTypeStr = currType instanceof CLASS ? ((CLASS)currType).name : currType.toString();
-            System.err.println("Type Error: Cannot assign " + cTypeStr + " to variable " + ast.id.s);
+            System.out.println("Type Error: Cannot assign " + cTypeStr + " to variable " + ast.id.s);
         }
     }
 
     public void visit(If ast) {
         ast.ex.accept(this);
         if (!(currType instanceof BOOLEAN)) {
-            System.err.println("Type Error: If condition must evaluate to boolean.");
+            System.out.println("Type Error: If condition must evaluate to boolean.");
         }
         ast.st1.accept(this);
         if (ast.st2 != null) {
@@ -119,7 +119,7 @@ public class TypeCheckVisitor implements Visitor {
     public void visit(While ast) {
         ast.ex.accept(this);
         if (!(currType instanceof BOOLEAN)) {
-            System.err.println("Type Error: While condition must evaluate to boolean.");
+            System.out.println("Type Error: While condition must evaluate to boolean.");
         }
         ast.st.accept(this);
     }
@@ -137,7 +137,7 @@ public class TypeCheckVisitor implements Visitor {
     public void visit(IdentifierExp ast) {
         Type varType = currMethod.lookupVariable(ast.st, global);
         if (varType == null) {
-            System.err.println("Type Error: Undeclared identifier " + ast.st);
+            System.out.println("Type Error: Undeclared identifier " + ast.st);
             currType = new VOID(); 
         } else {
             currType = varType;
@@ -150,7 +150,7 @@ public class TypeCheckVisitor implements Visitor {
         ast.e2.accept(this);
         Type t2 = currType;
         if (!(t1 instanceof INT) || !(t2 instanceof INT)) {
-            System.err.println("Type Error: '+' operator requires integer operands.");
+            System.out.println("Type Error: '+' operator requires integer operands.");
         }
         currType = new INT(); 
     }
@@ -161,7 +161,7 @@ public class TypeCheckVisitor implements Visitor {
         ast.e2.accept(this);
         Type t2 = currType;
         if (!(t1 instanceof INT) || !(t2 instanceof INT)) {
-            System.err.println("Type Error: '<' operator requires integer operands.");
+            System.out.println("Type Error: '<' operator requires integer operands.");
         }
         currType = new BOOLEAN(); 
     }
