@@ -1,49 +1,43 @@
 #!/bin/bash
 
+# COSC 4400 - Project 5 Test Harness
 echo "Compiling project..."
-make
+javac -cp . Semant/*.java Types/*.java Symbol/*.java Absyn/*.java Parse/*.java
+
 if [ $? -ne 0 ]; then
-    echo "Make failed. Stopping tests."
+    echo "Compilation failed! Stopping."
     exit 1
 fi
+
 echo "Compilation successful. Running tests..."
 echo "----------------------------------------"
 
+# Ensure testcases directory exists
+if [ ! -d "testcases" ]; then
+    echo "Error: 'testcases' directory not found!"
+    exit 1
+fi
+
 for file in testcases/*.java; do
     echo "Testing $file..."
-    
-    # 1. Run your Semantic compiler 
-    java Semant.Main "$file" > "${file}.myout" 2> "${file}.myerr"
-    
-    # 2. Run Dr. Brylow's reference pipeline (Parser piped into Checker)
-    ~brylow/cosc4400/Projects/mjparser "$file" | ~brylow/cosc4400/Projects/mjchecker -c - > "${file}.hisout" 2> "${file}.hiserr"
-    
-    # 3. Combine his stdout and stderr to serve as the master expected output
-    cat "${file}.hisout" "${file}.hiserr" > "${file}.expected"
-    
-    # 4. Combine your stdout and stderr for the comparison
-    cat "${file}.myout" "${file}.myerr" > "${file}.mycombined"
 
-    # 5. Diff the combined outputs
-    diff -w "${file}.mycombined" "${file}.expected" > "${file}.diff"
-    
-    if [ -s "${file}.diff" ]; then
-        echo -e "\033[0;31m  [FAIL] Output does not match mjchecker!\033[0m"
-        
-        echo -e "\033[0;36m  --- YOUR OUTPUT --- \033[0m"
-        cat "${file}.mycombined"
-        
-        echo -e "\033[0;36m  --- HIS EXPECTED OUTPUT (mjchecker) --- \033[0m"
-        cat "${file}.expected"
-        
-        echo "  ----------------------------------------"
+    # Run Dr. Brylow's reference parser piped into his reference checker
+    ~brylow/cosc4400/Projects/parser < "$file" | ~brylow/cosc4400/Projects/checker > "${file}.expected" 2>&1
+
+    # Run your compiler (which already includes the parser in Main.java)
+    java -cp . Semant.Main < "$file" > "${file}.out" 2>&1
+
+    # Compare the outputs, ignoring whitespace differences
+    if diff -w "${file}.out" "${file}.expected" > /dev/null; then
+        echo "  [PASS] Output perfectly matches checker."
     else
-        echo -e "\033[0;32m  [PASS] Output perfectly matches mjchecker.\033[0m"
+        echo "  [FAIL] Output does not match checker!"
+        echo "  --- YOUR OUTPUT --- "
+        cat "${file}.out"
+        echo "  --- HIS EXPECTED OUTPUT (checker) --- "
+        cat "${file}.expected"
     fi
-    
-    # Clean up temporary test files
-    rm "${file}.diff" "${file}.myout" "${file}.myerr" "${file}.hisout" "${file}.hiserr" "${file}.expected" "${file}.mycombined" 2>/dev/null
-    
     echo "----------------------------------------"
 done
+
 echo "Testing complete!"
