@@ -9,6 +9,7 @@ import java.util.LinkedList;
 public class MethodDecl extends Absyn
 {
     public Type returnType;
+	public Types.Type checktype;
     public boolean synced;
     public String name;
     public LinkedList<Formal> params;

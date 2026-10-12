@@ -77,29 +77,54 @@ public class TypeCheckVisitor implements Visitor {
         currClass = null;
     }
 
-    public void visit(MethodDecl ast) {
+   public void visit(MethodDecl ast) {
         currMethod = currClass.getMethod(ast.name);
         env.beginScope();
-
+    
+        // Visit parameters
+        for (int i = 0; i < ast.params.size(); i++) {
+            if (ast.params.get(i) != null) {
+                ((Visitable) ast.params.get(i)).accept(this);
+            }
+        }
+        // Visit local variables
+        for (int i = 0; i < ast.locals.size(); i++) {
+            if (ast.locals.get(i) != null) {
+                ((Visitable) ast.locals.get(i)).accept(this);
+            }
+        }
+        // Visit statements
         for (int i = 0; i < ast.stmts.size(); i++) {
             if (ast.stmts.get(i) != null) {
                 ((Visitable) ast.stmts.get(i)).accept(this);
             }
         }
-        
+        //Error checking
         if (ast.returnVal != null) {
             ast.returnVal.accept(this);
             if (currType != null && currMethod.returnType != null) {
-                // allow upcasting on return types
                 boolean isValid = currType.coerceTo(currMethod.returnType);
-
                 if (!isValid && !ast.name.equals("main")) {
                     System.out.println("Type Error: Return type mismatch in method " + ast.name);
                 }
             }
         }
-        env.endScope();
+        env.endScope(); 
         currMethod = null;
+    }
+
+    public void visit(VarDecl ast){
+        ast.type.accept(this);
+        Type declType = currType;
+        ast.checktype = declType;
+        env.put(Symbol.symbol(ast.name), declType);
+    }
+
+    public void visit(Formal ast){
+        ast.type.accept(this);
+        Type declType = currType;
+        ast.checktype = declType;
+        env.put(Symbol.symbol(ast.name),declType);
     }
 
     //statement checking
@@ -200,9 +225,7 @@ public class TypeCheckVisitor implements Visitor {
     //unused visits
     
     public void visit(java.util.AbstractList list) {}
-    public void visit(Formal ast) {}
     public void visit(IdentifierType ast) {}
-    public void visit(VarDecl ast) {}
     public void visit(XinuCallStmt ast) {}
     public void visit(StringLiteral ast) { currType = new STRING(); }
     public void visit(ArrayType ast) {}

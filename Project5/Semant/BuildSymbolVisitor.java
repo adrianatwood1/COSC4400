@@ -33,6 +33,7 @@ public class BuildSymbolVisitor implements Visitor {
     //scope managers
 
     public void visit(Program ast) {
+        makeXinuType();
         for (int i = 0; i < ast.classes.size(); i++) {
             if (ast.classes.get(i) != null) {
                 ((Visitable) ast.classes.get(i)).accept(this);
@@ -92,6 +93,43 @@ public class BuildSymbolVisitor implements Visitor {
         Type t = extractType(ast.type);
         boolean added = currMethod.addParam(ast.name, t);
         if (!added) System.err.println("Type Error: Parameter " + ast.name + " already defined.");
+    }
+
+private void makeXinuType() {
+        // creating xinu class
+        currClass = new Types.ClassSymbolTable("Xinu", null);
+        global.classes.put("Xinu", currClass);
+        java.util.LinkedList<MethodDecl> xinuMethods = new java.util.LinkedList<MethodDecl>();
+        // Empty lists to prevent NullPointerExceptions during visitation
+        java.util.LinkedList<VarDecl> emptyLocals = new java.util.LinkedList<VarDecl>();
+        java.util.LinkedList<Stmt> emptyStmts = new java.util.LinkedList<Stmt>();
+        
+        // print
+        java.util.LinkedList<Formal> params = new java.util.LinkedList<Formal>();
+        params.add(new Formal(new IdentifierType("String"), "arg"));
+        xinuMethods.add(new MethodDecl(null, false, "print", params, emptyLocals, emptyStmts, null));
+        // printint
+        params = new java.util.LinkedList<Formal>();
+        params.add(new Formal(new IntegerType(), "arg"));
+        xinuMethods.add(new MethodDecl(null, false, "printint", params, emptyLocals, emptyStmts, null));
+        // sleep 
+        xinuMethods.add(new MethodDecl(null, false, "sleep", params, emptyLocals, emptyStmts, null));
+        // readint()
+        params = new java.util.LinkedList<Formal>();
+        xinuMethods.add(new MethodDecl(new IntegerType(), false, "readint", params, emptyLocals, emptyStmts, null));
+        // println()
+        xinuMethods.add(new MethodDecl(null, false, "println", params, emptyLocals, emptyStmts, null));
+        // yield() 
+        xinuMethods.add(new MethodDecl(null, false, "yield", params, emptyLocals, emptyStmts, null));
+        // threadCreate
+        params = new java.util.LinkedList<Formal>();
+        params.add(new Formal(new IdentifierType("Thread"), "arg"));
+        xinuMethods.add(new MethodDecl(null, false, "threadCreate", params, emptyLocals, emptyStmts, null));
+        //feed into visitor pattern
+        for (MethodDecl md : xinuMethods) {
+            this.visit(md); 
+        }        
+        currClass = null; 
     }
 
     //unused visits for table building

@@ -1,43 +1,38 @@
 #!/bin/bash
 
-# COSC 4400 - Project 5 Test Harness
 echo "Compiling project..."
-javac -cp . Semant/*.java Types/*.java Symbol/*.java Absyn/*.java Parse/*.java
+make
 
 if [ $? -ne 0 ]; then
-    echo "Compilation failed! Stopping."
+    echo "Compilation failed! Stopping tests."
     exit 1
 fi
 
 echo "Compilation successful. Running tests..."
 echo "----------------------------------------"
 
-# Ensure testcases directory exists
-if [ ! -d "testcases" ]; then
-    echo "Error: 'testcases' directory not found!"
-    exit 1
-fi
-
 for file in testcases/*.java; do
     echo "Testing $file..."
-
-    # Run Dr. Brylow's reference parser piped into his reference checker
-    ~brylow/cosc4400/Projects/parser < "$file" | ~brylow/cosc4400/Projects/checker > "${file}.expected" 2>&1
-
-    # Run your compiler (which already includes the parser in Main.java)
-    java -cp . Semant.Main < "$file" > "${file}.out" 2>&1
-
-    # Compare the outputs, ignoring whitespace differences
-    if diff -w "${file}.out" "${file}.expected" > /dev/null; then
-        echo "  [PASS] Output perfectly matches checker."
+    
+    # 1. YOUR output: Run your full pipeline
+    java -cp . Semant.Main "$file" > my_out.txt
+    
+    # 2. HIS output: Use the -p flag to tell his checker to parse the raw Java file!
+    ~brylow/cosc4400/Projects/mjchecker -p "$file" > ref_out.txt
+    
+    # Compare the two outputs, ignoring whitespace differences
+    diff -w -B my_out.txt ref_out.txt
+    if [ $? -eq 0 ]; then
+        echo "  [PASS] Output matches exactly!"
     else
         echo "  [FAIL] Output does not match checker!"
         echo "  --- YOUR OUTPUT --- "
-        cat "${file}.out"
+        cat my_out.txt
         echo "  --- HIS EXPECTED OUTPUT (checker) --- "
-        cat "${file}.expected"
+        cat ref_out.txt
     fi
     echo "----------------------------------------"
 done
 
-echo "Testing complete!"
+# Clean up temp files
+rm -f my_out.txt ref_out.txt

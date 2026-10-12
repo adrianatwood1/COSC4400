@@ -9,6 +9,7 @@ public class Call extends Expr{
     public Expr ex;
     public Identifier id;
     public LinkedList li;
+    public int typeIndex;
 
     public Call(Expr ex, Identifier id, LinkedList li){
         this.ex = ex;

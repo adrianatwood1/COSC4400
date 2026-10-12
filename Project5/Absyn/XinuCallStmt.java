@@ -10,6 +10,7 @@ public class XinuCallStmt extends Stmt
 {
     public String method;
     public LinkedList<Expr> args;
+    public int typeIndex;
     public XinuCallStmt(String method, LinkedList<Expr> args)
     {
 		this.method = method;
