@@ -17,8 +17,12 @@ for file in testcases/*.java; do
     # 1. YOUR output: Run your full pipeline
     java -cp . Semant.Main "$file" > my_out.txt
     
-    # 2. HIS output: Use the -p flag to tell his checker to parse the raw Java file!
-    ~brylow/cosc4400/Projects/mjchecker -p "$file" > ref_out.txt
+    # 2. HIS output: Two explicit steps matching his instructions
+    # Step A: Parse the Java file into an AST dump
+    ~brylow/cosc4400/Projects/mjparser "$file" > temp.ast
+    
+    # Step B: Feed the AST dump directly into the checker
+    ~brylow/cosc4400/Projects/mjchecker < temp.ast > ref_out.txt
     
     # Compare the two outputs, ignoring whitespace differences
     diff -w -B my_out.txt ref_out.txt
@@ -35,4 +39,4 @@ for file in testcases/*.java; do
 done
 
 # Clean up temp files
-rm -f my_out.txt ref_out.txt
+rm -f my_out.txt ref_out.txt temp.ast

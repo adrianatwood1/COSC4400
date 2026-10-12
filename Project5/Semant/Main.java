@@ -35,8 +35,7 @@ public class Main {
             
             ast.accept(new TypeCheckVisitor(global));
 
-            String finalOutput = global.toString().replace("\r", "");
-            System.out.println(finalOutput);
+            
 
         } catch (ParseException e) {
             System.err.println("Parse Error: " + e.getMessage());

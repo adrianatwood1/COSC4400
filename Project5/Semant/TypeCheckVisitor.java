@@ -27,9 +27,7 @@ public class TypeCheckVisitor implements Visitor {
         this.env = new Table();
     }
     
-    // Walk up the parent chain to see if childType extends parentType
-    /*
-    //removed for this project
+   
     private boolean isSubclass(Type childType, Type parentType) {
         if (childType.toString().equals(parentType.toString())) return true;
         
@@ -47,7 +45,7 @@ public class TypeCheckVisitor implements Visitor {
         }
         return false;
     }
-    */
+
    //helper to check block's scope first, then pass symbols
    private Type resolveVars(String name){
     Type ty = (Type) env.get(Symbol.symbol(name));
@@ -103,7 +101,7 @@ public class TypeCheckVisitor implements Visitor {
         if (ast.returnVal != null) {
             ast.returnVal.accept(this);
             if (currType != null && currMethod.returnType != null) {
-                boolean isValid = currType.coerceTo(currMethod.returnType);
+                boolean isValid = currType.coerceTo(currMethod.returnType) || isSubclass(currType, currMethod.returnType);
                 if (!isValid && !ast.name.equals("main")) {
                     System.out.println("Type Error: Return type mismatch in method " + ast.name);
                 }
@@ -137,13 +135,11 @@ public class TypeCheckVisitor implements Visitor {
         }
         ast.ex.accept(this);
         
-        // allow upcasting assignments (Child to Parent)
-        boolean isValid = currType.coerceTo(lhsType);
+        boolean isValid = currType != null && (currType.coerceTo(lhsType) || isSubclass(currType, lhsType));
         
         if (!isValid) {
-            // grab the raw class names without "OBJECT()" wrappers for cleaner errors
-            String cTypeStr = currType instanceof CLASS ? ((CLASS)currType).name : currType.toString();
-            System.out.println("Type Error: Cannot assign " + cTypeStr + " to variable " + ast.id.s);
+            String currTypeStr = currType instanceof Types.CLASS ? ((Types.CLASS)currType).name : (currType != null ? currType.toString() : "null");
+            System.out.println("Type Error: Cannot assign " + currTypeStr + " to variable " + ast.id.s);
         }
     }
 
