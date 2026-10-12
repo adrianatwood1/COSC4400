@@ -1,6 +1,8 @@
 package Semant;
 
 import Absyn.*;
+import Symbol.Symbol;
+import Symbol.Table;
 import Types.ARRAY;
 import Types.BOOLEAN;
 import Types.CLASS;
@@ -18,12 +20,16 @@ public class TypeCheckVisitor implements Visitor {
     private ClassSymbolTable currClass;
     private MethodSymbolTable currMethod;
     private Type currType; 
+    private Table env;
     
     public TypeCheckVisitor(GlobalSymbolTable global) {
         this.global = global;
+        this.env = new Table();
     }
     
     // Walk up the parent chain to see if childType extends parentType
+    /*
+    //removed for this project
     private boolean isSubclass(Type childType, Type parentType) {
         if (childType.toString().equals(parentType.toString())) return true;
         
@@ -41,7 +47,16 @@ public class TypeCheckVisitor implements Visitor {
         }
         return false;
     }
+    */
+   //helper to check block's scope first, then pass symbols
+   private Type resolveVars(String name){
+    Type ty = (Type) env.get(Symbol.symbol(name));
+    if(ty != null){
+        return ty;
+    }
 
+    return currMethod.lookupVariable(name, global);
+   }
     //scope managers
 
     public void visit(Program ast) {
@@ -64,6 +79,8 @@ public class TypeCheckVisitor implements Visitor {
 
     public void visit(MethodDecl ast) {
         currMethod = currClass.getMethod(ast.name);
+        env.beginScope();
+
         for (int i = 0; i < ast.stmts.size(); i++) {
             if (ast.stmts.get(i) != null) {
                 ((Visitable) ast.stmts.get(i)).accept(this);
@@ -74,21 +91,21 @@ public class TypeCheckVisitor implements Visitor {
             ast.returnVal.accept(this);
             if (currType != null && currMethod.returnType != null) {
                 // allow upcasting on return types
-                boolean isValid = isSubclass(currType, currMethod.returnType);
+                boolean isValid = currType.coerceTo(currMethod.returnType);
 
                 if (!isValid && !ast.name.equals("main")) {
                     System.out.println("Type Error: Return type mismatch in method " + ast.name);
                 }
             }
         }
-        
+        env.endScope();
         currMethod = null;
     }
 
     //statement checking
 
     public void visit(Assign ast) {
-        Type lhsType = currMethod.lookupVariable(ast.id.s, global);
+        Type lhsType = resolveVars(ast.id.s);
         if (lhsType == null) {
             System.out.println("Type Error: Undeclared variable " + ast.id.s);
             return;
@@ -96,7 +113,7 @@ public class TypeCheckVisitor implements Visitor {
         ast.ex.accept(this);
         
         // allow upcasting assignments (Child to Parent)
-        boolean isValid = isSubclass(currType, lhsType);
+        boolean isValid = currType.coerceTo(lhsType);
         
         if (!isValid) {
             // grab the raw class names without "OBJECT()" wrappers for cleaner errors
@@ -125,17 +142,19 @@ public class TypeCheckVisitor implements Visitor {
     }
 
     public void visit(Block ast) {
+        env.beginScope();
         for (int i = 0; i < ast.sl.size(); i++) {
             if (ast.sl.get(i) != null) {
                 ((Visitable) ast.sl.get(i)).accept(this);
             }
         }
+        env.endScope();
     }
 
     //expression evaluation
 
     public void visit(IdentifierExp ast) {
-        Type varType = currMethod.lookupVariable(ast.st, global);
+        Type varType = resolveVars(ast.st);
         if (varType == null) {
             System.out.println("Type Error: Undeclared identifier " + ast.st);
             currType = new VOID(); 

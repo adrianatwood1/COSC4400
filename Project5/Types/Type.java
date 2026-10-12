@@ -2,6 +2,7 @@
 package Types;
 
 /**
+ * 
  * Parent class of all type descriptors.
  */
 
@@ -11,4 +12,6 @@ public abstract class Type implements Visitable
     public abstract boolean coerceTo(Type t);
     /** Visitor pattern dispatch. */
     public abstract void accept(Visitor v);
+
+   
 }
