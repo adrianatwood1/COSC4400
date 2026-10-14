@@ -1,17 +1,15 @@
 class MultilevelInheritance {
     public static void main(String[] a) {
-        System.out.println(new C().test());
+        Xinu.printint(new C().test());
     }
 }
 
 class A {
     int val;
-    
     public int init() {
         val = 10;
         return val;
     }
-    
     public int foo() {
         return 1;
     }
@@ -27,10 +25,9 @@ class C extends B {
     public int test() {
         int temp;
         temp = this.init();
-        System.out.println(temp);
+        Xinu.printint(temp);
         return this.foo();
     }
-    
     public int foo() {
         return 3;
     }

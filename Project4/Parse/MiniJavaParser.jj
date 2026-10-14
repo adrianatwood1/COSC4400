@@ -244,7 +244,7 @@ Absyn.Stmt Statement() :
     | stmt = IfStmt() 
     | stmt = WhileStmt() 
     | LOOKAHEAD(2) stmt = ArrayAssignStmt() 
-    | stmt = AssignStmt() 
+    | LOOKAHEAD(2) stmt = AssignStmt() 
     | stmt = XinuCallStatement() ) 
     { return stmt; }
 }
@@ -401,14 +401,15 @@ Absyn.Expr PostfixExpression() :
 }
 {
     ex = PrimaryExpression()
-    ( "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex,index); } 
-    | LOOKAHEAD(3) "." id = <ID> "(" args = ExpressionList() ")" { ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args); }
+    ( 
+      "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex, index); } 
+    | LOOKAHEAD(3) "." id = <ID> "(" { args = ExpressionList(); } ")" { ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args); }
     | LOOKAHEAD(2) "." id = <ID> { 
         if(id.image.equals("length")) { ex = new Absyn.ArrayLength(ex); }
         else { throw new ParseException("Expected length"); }
       }
     )*
-    {return ex; }
+    { return ex; }
 }
 
 Absyn.Expr PrimaryExpression() : 
@@ -426,7 +427,7 @@ Absyn.Expr PrimaryExpression() :
     | <THIS> { return new Absyn.This(); }
     | LOOKAHEAD(2) <NEW> <INT_TYPE> "[" ex = Expression() "]" { return new Absyn.NewArray(ex); }
     | <NEW> t = <ID> "(" ")" { return new Absyn.NewObject(new Absyn.Identifier(t.image)); }
-    | <XINU> "." t = <ID> "(" args = ExpressionList() ")" { return new Absyn.XinuCallExpr(t.image, args); }
+    | <XINU> "." t = <ID> "(" { args = ExpressionList(); } ")" { return new Absyn.XinuCallExpr(t.image, args); }
     | t = <ID> { return new Absyn.IdentifierExp(t.image); }
     | "(" ex = Expression() ")" { return ex; }
 }

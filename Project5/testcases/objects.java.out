@@ -1,0 +1,6 @@
+java.lang.NullPointerException: Cannot invoke "java.util.LinkedList.size()" because "<parameter1>.locals" is null
+	at Semant.BuildSymbolVisitor.visit(BuildSymbolVisitor.java:73)
+	at Semant.BuildSymbolVisitor.makeXinuType(BuildSymbolVisitor.java:135)
+	at Semant.BuildSymbolVisitor.visit(BuildSymbolVisitor.java:36)
+	at Absyn.Program.accept(Program.java:19)
+	at Semant.Main.main(Main.java:30)
