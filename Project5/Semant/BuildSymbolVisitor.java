@@ -8,9 +8,9 @@ import Types.ClassSymbolTable;
 import Types.GlobalSymbolTable;
 import Types.INT;
 import Types.MethodSymbolTable;
+import Types.STRING;
 import Types.Type;
 import Types.VOID;
-
 
 public class BuildSymbolVisitor implements Visitor { 
     private GlobalSymbolTable global;
@@ -20,16 +20,30 @@ public class BuildSymbolVisitor implements Visitor {
     public BuildSymbolVisitor(GlobalSymbolTable global) {
         this.global = global;
     }
-
+    // helps printing out errors to our AST
+    private void error(Visitable ast, String msg) {
+        System.out.print("ERROR " + msg + ": ");
+        PrintVisitor pv = new PrintVisitor(new java.io.PrintWriter(System.out, true));
+        pv.indentCount = 10;
+        pv.priType = false;
+        ast.accept(pv);
+        System.out.println();
+        Main.hasError = true;
+    }
     
     private Type extractType(Object astType) { 
         if (astType == null) return new VOID(); 
         if (astType instanceof IntegerType) return new INT();
         if (astType instanceof BooleanType) return new BOOLEAN();
-        if (astType instanceof IdentifierType) return new CLASS(((IdentifierType) astType).id);
+        if (astType instanceof IdentifierType) {
+            String id = ((IdentifierType) astType).id;
+            if (id.equals("String")) return new STRING();
+            return new CLASS(id);
+        }
         if (astType instanceof ArrayType) return new ARRAY(extractType(((ArrayType) astType).base));
         return new VOID();
     }
+
     //scope managers
 
     public void visit(Program ast) {
@@ -43,7 +57,11 @@ public class BuildSymbolVisitor implements Visitor {
 
     public void visit(ClassDecl ast) {
         currClass = new ClassSymbolTable(ast.name, ast.parent);
-        global.addClass(ast.name, currClass);
+        ast.symbolTable = currClass;
+        if (!global.addClass(ast.name, currClass)) {
+            System.out.println("ERROR duplicate class: " + ast.name + ": line not available");
+            Main.hasError = true;
+        }
 
         for (int i = 0; i < ast.fields.size(); i++) {
             if (ast.fields.get(i) != null) {
@@ -62,6 +80,7 @@ public class BuildSymbolVisitor implements Visitor {
     public void visit(MethodDecl ast) {
         Type retType = extractType(ast.returnType);
         currMethod = new MethodSymbolTable(ast.name, retType, currClass);
+        ast.symbolTable = currMethod;
         currClass.addMethod(ast.name, currMethod);
 
         for (int i = 0; i < ast.params.size(); i++) {
@@ -80,38 +99,35 @@ public class BuildSymbolVisitor implements Visitor {
 
     public void visit(VarDecl ast) {
         Type t = extractType(ast.type);
+        ast.checktype = t;
         if (currMethod != null) {
             boolean added = currMethod.addLocal(ast.name, t);
-            if (!added){
-                System.err.println("Type Error: Local variable " + ast.name + " already defined.");
-                Main.hasError = true;
-            } 
-            
+            if (!added) {
+                error(ast, ast.name + " is already defined in " + currMethod.name);
+            }
         } else if (currClass != null) {
             boolean added = currClass.addField(ast.name, t);
             if (!added) {
-                System.err.println("Type Error: Field " + ast.name + " already defined.");
-                Main.hasError = true;
+                error(ast, ast.name + " is already defined in " + currClass.name);
             }
         }
     }
 
     public void visit(Formal ast) {
         Type t = extractType(ast.type);
+        ast.checktype = t;
         boolean added = currMethod.addParam(ast.name, t);
         if (!added) {
-            System.err.println("Type Error: Parameter " + ast.name + " already defined.");
-            Main.hasError = true;
+            error(ast, ast.name + " is already defined in " + currMethod.name);
         }
     }
 
-private void makeXinuType() {
+    private void makeXinuType() {
         // creating xinu class
         currClass = new Types.ClassSymbolTable("Xinu", null);
         global.classes.put("Xinu", currClass);
         java.util.LinkedList<MethodDecl> xinuMethods = new java.util.LinkedList<MethodDecl>();
         // Empty lists to prevent NullPointerExceptions during visitation
-       
         java.util.LinkedList<VarDecl> emptyLocals = new java.util.LinkedList<VarDecl>();
         java.util.LinkedList<Stmt> emptyStmts = new java.util.LinkedList<Stmt>();
         
@@ -183,4 +199,3 @@ private void makeXinuType() {
     public void visit(NegExpr ast) {}
     public void visit(XinuCallExpr ast) {}
 }
-
