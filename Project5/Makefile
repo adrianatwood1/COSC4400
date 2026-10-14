@@ -8,14 +8,14 @@ PARSEDIR=Parse
 MJ_PARSER=MiniJavaParser
 
 DEFAULT_JAVACCGEN = $(PARSEDIR)/SimpleCharStream.java \
-    $(PARSEDIR)/ParseException.java \
-    $(PARSEDIR)/Token.java \
-    $(PARSEDIR)/TokenMgrError.java
+	$(PARSEDIR)/ParseException.java \
+	$(PARSEDIR)/Token.java \
+	$(PARSEDIR)/TokenMgrError.java
 
 MJ_JAVACCGEN = $(DEFAULT_JAVACCGEN) \
-    $(PARSEDIR)/$(MJ_PARSER).java \
-    $(PARSEDIR)/$(MJ_PARSER)Constants.java \
-    $(PARSEDIR)/$(MJ_PARSER)TokenManager.java
+	$(PARSEDIR)/$(MJ_PARSER).java \
+	$(PARSEDIR)/$(MJ_PARSER)Constants.java \
+	$(PARSEDIR)/$(MJ_PARSER)TokenManager.java
 
 # Project 4 - Semantic Analyzer
 ASTSRC = $(wildcard Absyn/*.java)
@@ -24,7 +24,8 @@ SEMANTSRC = $(wildcard Semant/*.java)
 
 PROJECTSRC = $(ASTSRC) $(TYPESSRC) $(SEMANTSRC)
 
-all:    $(PARSEDIR)/$(MJ_PARSER).java $(PROJECTSRC:.java=.class)
+all:	$(PARSEDIR)/$(MJ_PARSER).java $(PROJECTSRC:.java=.class)
+	${JAVAC} ${JFLAGS} Absyn/*.java Symbol/*.java Types/*.java Semant/*.java
 
 $(PARSEDIR)/$(MJ_PARSER).java: $(PARSEDIR)/$(MJ_PARSER).jj
 	cd $(PARSEDIR); ${JAVACC} $(MJ_PARSER).jj;

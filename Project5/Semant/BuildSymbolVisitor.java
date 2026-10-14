@@ -82,17 +82,27 @@ public class BuildSymbolVisitor implements Visitor {
         Type t = extractType(ast.type);
         if (currMethod != null) {
             boolean added = currMethod.addLocal(ast.name, t);
-            if (!added) System.err.println("Type Error: Local variable " + ast.name + " already defined.");
+            if (!added){
+                System.err.println("Type Error: Local variable " + ast.name + " already defined.");
+                Main.hasError = true;
+            } 
+            
         } else if (currClass != null) {
             boolean added = currClass.addField(ast.name, t);
-            if (!added) System.err.println("Type Error: Field " + ast.name + " already defined.");
+            if (!added) {
+                System.err.println("Type Error: Field " + ast.name + " already defined.");
+                Main.hasError = true;
+            }
         }
     }
 
     public void visit(Formal ast) {
         Type t = extractType(ast.type);
         boolean added = currMethod.addParam(ast.name, t);
-        if (!added) System.err.println("Type Error: Parameter " + ast.name + " already defined.");
+        if (!added) {
+            System.err.println("Type Error: Parameter " + ast.name + " already defined.");
+            Main.hasError = true;
+        }
     }
 
 private void makeXinuType() {
@@ -101,6 +111,7 @@ private void makeXinuType() {
         global.classes.put("Xinu", currClass);
         java.util.LinkedList<MethodDecl> xinuMethods = new java.util.LinkedList<MethodDecl>();
         // Empty lists to prevent NullPointerExceptions during visitation
+       
         java.util.LinkedList<VarDecl> emptyLocals = new java.util.LinkedList<VarDecl>();
         java.util.LinkedList<Stmt> emptyStmts = new java.util.LinkedList<Stmt>();
         

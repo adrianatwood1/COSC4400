@@ -19,6 +19,7 @@ public class TypeCheckVisitor implements Visitor {
     private GlobalSymbolTable global;
     private ClassSymbolTable currClass;
     private MethodSymbolTable currMethod;
+    private String currClassName; 
     private Type currType; 
     private Table env;
     
@@ -52,9 +53,21 @@ public class TypeCheckVisitor implements Visitor {
     if(ty != null){
         return ty;
     }
-
     return currMethod.lookupVariable(name, global);
    }
+   // helping to translate the input into types 
+    private String formatType(Type t) {
+        if (t == null) return "void";
+        if (t instanceof Types.INT) return "int";
+        if (t instanceof Types.BOOLEAN) return "boolean";
+        if (t instanceof Types.CLASS) return "OBJECT:" + ((Types.CLASS)t).name;
+        if (t instanceof Types.ARRAY) return "int[]"; 
+        if (t instanceof Types.NIL) return "NIL";
+        if (t instanceof Types.VOID) return "void";
+        return t.toString();
+    }
+
+
     //scope managers
 
     public void visit(Program ast) {
@@ -66,6 +79,7 @@ public class TypeCheckVisitor implements Visitor {
     }
 
     public void visit(ClassDecl ast) {
+        currClassName = ast.name;
         currClass = global.getClass(ast.name);
         for (int i = 0; i < ast.methods.size(); i++) {
             if (ast.methods.get(i) != null) {
@@ -104,6 +118,7 @@ public class TypeCheckVisitor implements Visitor {
                 boolean isValid = currType.coerceTo(currMethod.returnType) || isSubclass(currType, currMethod.returnType);
                 if (!isValid && !ast.name.equals("main")) {
                     System.out.println("Type Error: Return type mismatch in method " + ast.name);
+                    Main.hasError = true;
                 }
             }
         }
@@ -125,12 +140,47 @@ public class TypeCheckVisitor implements Visitor {
         env.put(Symbol.symbol(ast.name),declType);
     }
 
+     public void visit(Call ast) {
+        ast.ex.accept(this);
+        Type objType = currType;
+
+        if (ast.li != null) {
+            for (int i = 0; i < ast.li.size(); i++) {
+                if (ast.li.get(i) != null) {
+                    ((Visitable) ast.li.get(i)).accept(this);
+                }
+            }
+        }
+        if (objType instanceof CLASS) {
+            String className = ((CLASS) objType).name;
+            ClassSymbolTable targetClass = global.getClass(className);
+
+            if (targetClass != null) {
+                MethodSymbolTable targetMethod = targetClass.getMethod(ast.id.s);
+                if (targetMethod != null) {
+                    currType = targetMethod.returnType;
+                    return; 
+                } else {
+                    System.out.println("Type Error: Method " + ast.id.s + " not found in class " + className);
+                    Main.hasError = true;
+                }
+            }
+        } else {
+            System.out.println("Type Error: Cannot call method on a non-object type.");
+            Main.hasError = true;
+        }
+        currType = new VOID();
+    }
+
     //statement checking
 
     public void visit(Assign ast) {
         Type lhsType = resolveVars(ast.id.s);
         if (lhsType == null) {
             System.out.println("Type Error: Undeclared variable " + ast.id.s);
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
+            lhsType = new VOID();
             return;
         }
         ast.ex.accept(this);
@@ -140,6 +190,8 @@ public class TypeCheckVisitor implements Visitor {
         if (!isValid) {
             String currTypeStr = currType instanceof Types.CLASS ? ((Types.CLASS)currType).name : (currType != null ? currType.toString() : "null");
             System.out.println("Type Error: Cannot assign " + currTypeStr + " to variable " + ast.id.s);
+             ast.accept(new PrintVisitor());
+            Main.hasError = true;
         }
     }
 
@@ -147,6 +199,8 @@ public class TypeCheckVisitor implements Visitor {
         ast.ex.accept(this);
         if (!(currType instanceof BOOLEAN)) {
             System.out.println("Type Error: If condition must evaluate to boolean.");
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
         }
         ast.st1.accept(this);
         if (ast.st2 != null) {
@@ -158,6 +212,8 @@ public class TypeCheckVisitor implements Visitor {
         ast.ex.accept(this);
         if (!(currType instanceof BOOLEAN)) {
             System.out.println("Type Error: While condition must evaluate to boolean.");
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
         }
         ast.st.accept(this);
     }
@@ -178,6 +234,8 @@ public class TypeCheckVisitor implements Visitor {
         Type varType = resolveVars(ast.st);
         if (varType == null) {
             System.out.println("Type Error: Undeclared identifier " + ast.st);
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
             currType = new VOID(); 
         } else {
             currType = varType;
@@ -191,6 +249,8 @@ public class TypeCheckVisitor implements Visitor {
         Type t2 = currType;
         if (!(t1 instanceof INT) || !(t2 instanceof INT)) {
             System.out.println("Type Error: '+' operator requires integer operands.");
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
         }
         currType = new INT(); 
     }
@@ -202,6 +262,8 @@ public class TypeCheckVisitor implements Visitor {
         Type t2 = currType;
         if (!(t1 instanceof INT) || !(t2 instanceof INT)) {
             System.out.println("Type Error: '<' operator requires integer operands.");
+            ast.accept(new PrintVisitor());
+            Main.hasError = true;
         }
         currType = new BOOLEAN(); 
     }
@@ -218,17 +280,13 @@ public class TypeCheckVisitor implements Visitor {
         currType = new BOOLEAN();
     }
 
+   
+
     //unused visits
     
     public void visit(java.util.AbstractList list) {}
-    public void visit(IdentifierType ast) {}
     public void visit(XinuCallStmt ast) {}
     public void visit(StringLiteral ast) { currType = new STRING(); }
-    public void visit(ArrayType ast) {}
-    public void visit(IntegerType ast) {}
-    public void visit(BooleanType ast) {}
-    public void visit(Identifier ast) {}
-    public void visit(This ast) {}
     public void visit(Minus ast) { currType = new INT(); }
     public void visit(Times ast) { currType = new INT(); }
     public void visit(Divide ast) { currType = new INT(); }
@@ -244,7 +302,34 @@ public class TypeCheckVisitor implements Visitor {
     public void visit(XinuCallExpr ast) {}
     public void visit(ArrayLength ast) { currType = new INT(); }
     public void visit(ArrayLookup ast) { currType = new INT(); }
-    public void visit(Call ast) { currType = new INT(); }
     public void visit(NewArray ast) { currType = new ARRAY(new INT()); }
     public void visit(NewObject ast) { currType = new CLASS(ast.id.s); }
+    public void visit(Identifier ast) {}
+    
+    public void visit(IdentifierType ast) {
+        if (ast.id.equals("String")) {
+            currType = new STRING();
+        } else {
+            currType = new CLASS(ast.id);
+        }
+    }
+
+    public void visit(ArrayType ast) {
+        ast.base.accept(this);
+        currType = new ARRAY(currType);
+    }
+
+    public void visit(IntegerType ast) {
+        currType = new INT();
+    }
+
+    public void visit(BooleanType ast) {
+        currType = new BOOLEAN(); 
+    }
+
+    public void visit(This ast) {
+        if (currClassName != null) {
+            currType = new CLASS(currClassName);
+        }
+    }
 }

@@ -13,6 +13,7 @@ public class ClassDecl extends Absyn
     public LinkedList<VarDecl> fields;
     public LinkedList<MethodDecl> methods;
     public Types.Type checktype;
+    public Types.ClassSymbolTable symbolTable;
     public ClassDecl(String name, String parent, 
 		     LinkedList<VarDecl> fields, LinkedList<MethodDecl> methods)
     {

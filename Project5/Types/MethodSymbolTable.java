@@ -23,7 +23,8 @@ public class MethodSymbolTable {
     }
 
     public boolean addLocal(String localName, Type type) {
-        if (locals.containsKey(localName) || params.containsKey(localName)) return false; // duplicate local variable
+        if (locals.containsKey(localName)) return false; // duplicate local variable
+        if(!"main".equals(name) && params.containsKey(localName)) return false;
         locals.put(localName, type);
         return true;
     }
