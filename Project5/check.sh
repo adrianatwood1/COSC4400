@@ -1,42 +1,22 @@
 #!/bin/bash
+make || { echo "Compilation failed"; exit 1; }
 
-echo "Compiling project..."
-make
+# Edit this ONE function after you find the form that works by hand:
+ref() { ~brylow/cosc4400/Projects/mjchecker "$1" 2>&1; }
 
-if [ $? -ne 0 ]; then
-    echo "Compilation failed! Stopping tests."
-    exit 1
-fi
-
-echo "Compilation successful. Running tests..."
-echo "----------------------------------------"
-
+pass=0; fail=0
 for file in testcases/*.java; do
-    echo "Testing $file..."
-    
-    # 1. YOUR output: Run your full pipeline
-    java -cp . Semant.Main "$file" > my_out.txt
-    
-    # 2. HIS output: Two explicit steps matching his instructions
-    # Step A: Parse the Java file into an AST dump
-    ~brylow/cosc4400/Projects/mjparser "$file" > temp.ast
-    
-    # Step B: Feed the AST dump directly into the checker
-    ~brylow/cosc4400/Projects/mjchecker < temp.ast > ref_out.txt
-    
-    # Compare the two outputs, ignoring whitespace differences
-    diff -w -B my_out.txt ref_out.txt
-    if [ $? -eq 0 ]; then
-        echo "  [PASS] Output matches exactly!"
-    else
-        echo "  [FAIL] Output does not match checker!"
-        echo "  --- YOUR OUTPUT --- "
-        cat my_out.txt
-        echo "  --- HIS EXPECTED OUTPUT (checker) --- "
-        cat ref_out.txt
-    fi
-    echo "----------------------------------------"
-done
+    java -cp . Semant.Main < "$file" > my_out.txt 2>&1
+    ref "$file" > ref_out.txt
 
-# Clean up temp files
-rm -f my_out.txt ref_out.txt temp.ast
+    if [ ! -s ref_out.txt ]; then
+        echo "[SKIP] $file - reference printed nothing"; continue
+    fi
+    if diff my_out.txt ref_out.txt > diff_out.txt; then
+        pass=$((pass+1))
+    else
+        echo "[FAIL] $file"; head -15 diff_out.txt; fail=$((fail+1))
+    fi
+done
+echo "pass=$pass fail=$fail"
+rm -f my_out.txt ref_out.txt diff_out.txt

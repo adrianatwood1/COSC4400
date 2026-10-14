@@ -10,6 +10,7 @@ public class MethodDecl extends Absyn
 {
     public Type returnType;
 	public Types.Type checktype;
+	public Types.MethodSymbolTable symbolTable;
     public boolean synced;
     public String name;
     public LinkedList<Formal> params;

@@ -2,13 +2,11 @@
 package Absyn;
 import java.io.PrintWriter;
 
-/**
- * Visitor prints AST in reparseable form.
- */
 public class PrintVisitor implements Visitor
 {
     PrintWriter out;
     public int indentCount = 0;
+    public boolean priType = true; 
 
     public PrintVisitor(PrintWriter out)
     {
@@ -19,6 +17,13 @@ public class PrintVisitor implements Visitor
     {
         this.out = new PrintWriter(System.out);
     }
+
+    public PrintVisitor(int startIndent, boolean priType) 
+    { 
+        this.out = new PrintWriter(System.out); 
+        this.indentCount = startIndent; 
+        this.priType = priType; 
+    } 
 
     private void indent()
     {
@@ -66,6 +71,9 @@ public class PrintVisitor implements Visitor
         indentCount++;
         visit(ast.fields);
         visit(ast.methods);
+        if (priType && ast.symbolTable != null) { 
+            out.print("\n" + ast.symbolTable.toString(indentCount)); 
+        } 
         indentCount--;
         out.print(")");
     }
@@ -85,6 +93,9 @@ public class PrintVisitor implements Visitor
         visit(ast.locals);
         visit(ast.stmts);
         ast.returnVal.accept(this);
+        if (priType && ast.symbolTable != null && ast.symbolTable.parentClass != null) { 
+            out.print("\n" + ast.symbolTable.parentClass.formatMethod(ast.symbolTable, indentCount)); 
+        } 
         indentCount--;
         out.print(")");
     }
@@ -111,7 +122,14 @@ public class PrintVisitor implements Visitor
         if (null == ast.init)
         {   out.print(" null");   } 
         else
-        { ast.init.accept(this); }
+        {
+            indentCount++; 
+            ast.init.accept(this);
+            indentCount--; 
+        }
+        if (priType && ast.checktype != null) { 
+            out.print(" \n" + Types.ClassSymbolTable.formatTypeStatic(ast.checktype, indentCount + 1)); 
+        } 
         out.print(")");
     }
 
@@ -236,7 +254,10 @@ public class PrintVisitor implements Visitor
         n.st1.accept(this);
         if(n.st2 != null){
             n.st2.accept(this);
-        }
+        } else { 
+            indent(); 
+            out.print("null"); 
+        } 
         indentCount--;
         out.print(")");
     }
@@ -276,7 +297,11 @@ public class PrintVisitor implements Visitor
         indentCount++;
         n.ex.accept(this);
         indent();
-        out.print("length");
+        out.print(n.fName); 
+        if (priType) { 
+            indent(); 
+            out.print(n.typeIndex); 
+        } 
         indentCount--;
         out.print(")");
     }
@@ -289,6 +314,10 @@ public class PrintVisitor implements Visitor
         indent();
         out.print(n.id.s); 
         visit(n.li);
+        if (priType) { 
+            indent(); 
+            out.print(n.typeIndex); 
+        } 
         indentCount--;
         out.print(")");
     }
@@ -297,12 +326,7 @@ public class PrintVisitor implements Visitor
         indent();
         out.print("NewArrayExpr(IntegerType");
         indentCount++;
-        indent();
-        out.print("AbstractList(");
-        indentCount++;
-        n.ex.accept(this);
-        indentCount--;
-        out.print(")");
+        visit(n.dimensions); 
         indentCount--;
         out.print(")");
     }
@@ -314,8 +338,8 @@ public class PrintVisitor implements Visitor
         out.print("IdentifierType(" + n.id.s + ")");
         indentCount--;
         out.print(")");
-
     }
+
     public void visit(NullExpr n){
         indent();
         out.print("NullExpr");
@@ -323,10 +347,12 @@ public class PrintVisitor implements Visitor
 
     public void visit(EqualExpr n){
         printBinaryExpr("EqualExpr", n.ex1, n.ex2);
-        }
-    public void visit(NotEqExpr n){
-        printBinaryExpr("EqualExpr", n.ex1, n.ex2);
     }
+
+    public void visit(NotEqExpr n){
+        printBinaryExpr("NotEqExpr", n.ex1, n.ex2); 
+    }
+
     public void visit(NegExpr n){
         indent();
         out.print("NegExpr(");
@@ -335,6 +361,7 @@ public class PrintVisitor implements Visitor
         indentCount--;
         out.print(")");
     }
+
     public void visit(XinuCallExpr n) {
         indent();
         out.print("XinuCallExpr(" + n.method);
@@ -343,7 +370,4 @@ public class PrintVisitor implements Visitor
         indentCount--;
         out.print(")");
     }
-
-
-
 }

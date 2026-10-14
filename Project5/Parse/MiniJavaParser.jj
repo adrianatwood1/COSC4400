@@ -155,7 +155,7 @@ Absyn.ClassDecl MainClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
     <LPAREN> <STRING> <LBRACKET> <RBRACKET> arg = <ID> <RPAREN>
     { formals.add(new Absyn.Formal(new Absyn.ArrayType(new Absyn.IdentifierType("String")), arg.image)); }
     <LBRACE> 
-    ( LOOKAHEAD( Type() <ID> ) var = VarDeclaration() { locals.add(var); } )*
+    ( LOOKAHEAD( BaseType() ( "[" "]" )* <ID> ) var = VarDeclaration() { locals.add(var); } )* 
     ( stmt = Statement() { stmts.add(stmt); } )*
     <RBRACE> <RBRACE>
     {
@@ -165,7 +165,6 @@ Absyn.ClassDecl MainClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
         return cd;
     }
 }
-
 // ClassDeclaration ::= "class" Identifier ( "extends" Identifier )? "{" ( VarDeclaration )* ( MethodDeclaration )* "}"
 void ClassDeclaration(LinkedList<Absyn.ClassDecl> cl) : 
 {
@@ -177,7 +176,7 @@ void ClassDeclaration(LinkedList<Absyn.ClassDecl> cl) :
 }
 {
     [ <PUBLIC> ] <CLASS> name = <ID> [ <EXTENDS> parent = <ID> ] <LBRACE>
-    ( LOOKAHEAD( Type() <ID> ) v = VarDeclaration() { field.add(v); } )*
+    ( LOOKAHEAD( BaseType() ( "[" "]" )* <ID> ) v = VarDeclaration() { field.add(v); } )* 
     ( m = MethodDeclaration() { method.add(m); } )*
     <RBRACE>
     {
@@ -204,12 +203,11 @@ Absyn.MethodDecl MethodDeclaration() :
     [ pType = Type() pName = <ID> { param.add(new Absyn.Formal(pType, pName.image)); }
       ( "," pType = Type() pName = <ID> { param.add(new Absyn.Formal(pType, pName.image)); } )*
     ] ")" "{"
-    ( LOOKAHEAD( Type() <ID> ) v = VarDeclaration() { local.add(v); } )*
+    ( LOOKAHEAD( BaseType() ( "[" "]" )* <ID> ) v = VarDeclaration() { local.add(v); } )* 
     ( s = Statement() { stmt.add(s); } )*
     <RETURN> rVal = Expression() ";" "}"
     { return new Absyn.MethodDecl(rType, sync, name.image, param, local, stmt, rVal); }
 }
-
 // VarDeclaration 	::= 	Type Identifier ( = Expression )? ";"
 Absyn.VarDecl VarDeclaration() :
 {
@@ -402,11 +400,11 @@ Absyn.Expr PostfixExpression() :
 {
     ex = PrimaryExpression()
     ( 
-      "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex, index); } 
+      LOOKAHEAD(2) "[" index = Expression() "]" { ex = new Absyn.ArrayLookup(ex, index); } 
     | LOOKAHEAD(3) "." id = <ID> "(" { args = ExpressionList(); } ")" { ex = new Absyn.Call(ex, new Absyn.Identifier(id.image), args); }
     | LOOKAHEAD(2) "." id = <ID> { 
         if(id.image.equals("length")) { ex = new Absyn.ArrayLength(ex); }
-        else { throw new ParseException("Expected length"); }
+        else { ex = new Absyn.ArrayLength(ex, id.image); } 
       }
     )*
     { return ex; }
@@ -416,6 +414,7 @@ Absyn.Expr PrimaryExpression() :
 { 
     Token t;
     Absyn.Expr ex;
+    int emptyDims = 0; 
     LinkedList<Absyn.Expr> args = new LinkedList<Absyn.Expr>();
 }
 {
@@ -425,7 +424,7 @@ Absyn.Expr PrimaryExpression() :
     | <FALSE> { return new Absyn.False(); }
     | <NULL> { return new Absyn.NullExpr(); }
     | <THIS> { return new Absyn.This(); }
-    | LOOKAHEAD(2) <NEW> <INT_TYPE> "[" ex = Expression() "]" { return new Absyn.NewArray(ex); }
+    | LOOKAHEAD(2) <NEW> <INT_TYPE> "[" ex = Expression() "]" ( LOOKAHEAD(2) "[" "]" { emptyDims++; } )* { return new Absyn.NewArray(ex, emptyDims); } 
     | <NEW> t = <ID> "(" ")" { return new Absyn.NewObject(new Absyn.Identifier(t.image)); }
     | <XINU> "." t = <ID> "(" { args = ExpressionList(); } ")" { return new Absyn.XinuCallExpr(t.image, args); }
     | t = <ID> { return new Absyn.IdentifierExp(t.image); }

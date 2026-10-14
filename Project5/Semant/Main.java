@@ -15,7 +15,9 @@ import java.io.InputStream;
  * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu  patrick.panarese@marquette.edu
  */
 public class Main {
+    public static boolean hasError = false; 
     public static void main(String[] args) {
+        hasError = false;
         try {
             InputStream in = System.in;
             if(args.length > 0){
@@ -34,6 +36,10 @@ public class Main {
             }
             
             ast.accept(new TypeCheckVisitor(global));
+
+            if (!hasError){
+                ast.accept(new Absyn.PrintVisitor());
+            }
 
             
 
