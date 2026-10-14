@@ -14,6 +14,9 @@ import Types.NIL;
 import Types.STRING;
 import Types.Type;
 import Types.VOID;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
@@ -30,12 +33,14 @@ public class TypeCheckVisitor implements Visitor {
         this.env = new Table();
     }
 
-    private void error(Visitable ast, String msg) {
+        private void error(Visitable ast, String msg) {
         System.out.print("ERROR " + msg + ": ");
-        PrintVisitor pv = new PrintVisitor(new PrintWriter(System.out, true));
+        PrintWriter pw = new PrintWriter(System.out, true);
+        PrintVisitor pv = new PrintVisitor(pw);
         pv.indentCount = 10;
         pv.priType = false;
         ast.accept(pv);
+        pw.flush();
         System.out.println();
         Main.hasError = true;
     }
@@ -96,7 +101,7 @@ public class TypeCheckVisitor implements Visitor {
 
     public void visit(ClassDecl ast) {
         currClassName = ast.name;
-        currClass = global.getClass(ast.name);
+        currClass = (ast.symbolTable != null) ? ast.symbolTable : global.getClass(ast.name);
         for (int i = 0; i < ast.fields.size(); i++) {
             if (ast.fields.get(i) != null) {
                 ((Visitable) ast.fields.get(i)).accept(this);
@@ -112,8 +117,8 @@ public class TypeCheckVisitor implements Visitor {
 
     public void visit(MethodDecl ast) {
         currMethod = currClass.getMethod(ast.name);
+        if(currMethod == null) return;
         env.beginScope();
-    
         // Visit parameters
         for (int i = 0; i < ast.params.size(); i++) {
             if (ast.params.get(i) != null) {
@@ -142,7 +147,7 @@ public class TypeCheckVisitor implements Visitor {
                 }
             }
         }
-        env.endScope(); 
+        env.endScope();
         currMethod = null;
     }
 
@@ -283,7 +288,7 @@ public class TypeCheckVisitor implements Visitor {
         Type varType = resolveVars(ast.st);
         if (varType == null) {
             error(ast, "cannot resolve symbol " + ast.st);
-            currType = new VOID(); 
+            currType = new VOID();
         } else {
             currType = varType;
         }
@@ -300,9 +305,17 @@ public class TypeCheckVisitor implements Visitor {
         currType = new INT(); 
     }
 
-    public void visit(Minus ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new INT(); }
-    public void visit(Times ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new INT(); }
-    public void visit(Divide ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new INT(); }
+    private void binary(Visitable node, Expr e1, Expr e2, String op, boolean wantInt, Type result) {
+        e1.accept(this); Type t1 = currType;
+        e2.accept(this); Type t2 = currType;
+        boolean ok = wantInt ? (t1 instanceof INT && t2 instanceof INT) : (t1 instanceof BOOLEAN && t2 instanceof BOOLEAN);
+        if (!ok) error(node, "operator " + op + " cannot be applied to " + formatType(t1) + ", " + formatType(t2));
+        currType = result;
+    }
+
+    public void visit(Minus ast)         { binary(ast, ast.e1, ast.e2, "-",  true,  new INT()); }
+    public void visit(Times ast)         { binary(ast, ast.e1, ast.e2, "*",  true,  new INT()); }
+    public void visit(Divide ast)        { binary(ast, ast.e1, ast.e2, "/",  true,  new INT()); }
 
     public void visit(LessThan ast) {
         ast.e1.accept(this);
@@ -312,16 +325,20 @@ public class TypeCheckVisitor implements Visitor {
         if (!(t1 instanceof INT) || !(t2 instanceof INT)) {
             error(ast, "operator < cannot be applied to " + formatType(t1) + ", " + formatType(t2));
         }
-        currType = new BOOLEAN(); 
+        currType = new BOOLEAN();
     }
 
-    public void visit(GreaterThan ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new BOOLEAN(); }
-    public void visit(AndExpression ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new BOOLEAN(); }
-    public void visit(OrExpression ast) { ast.e1.accept(this); ast.e2.accept(this); currType = new BOOLEAN(); }
+    public void visit(GreaterThan ast)   { binary(ast, ast.e1, ast.e2, ">",  true,  new BOOLEAN()); }
+    public void visit(AndExpression ast) { binary(ast, ast.e1, ast.e2, "&&", false, new BOOLEAN()); }
+    public void visit(OrExpression ast)  { binary(ast, ast.e1, ast.e2, "||", false, new BOOLEAN()); }
     public void visit(EqualExpr ast) { ast.ex1.accept(this); ast.ex2.accept(this); currType = new BOOLEAN(); }
     public void visit(NotEqExpr ast) { ast.ex1.accept(this); ast.ex2.accept(this); currType = new BOOLEAN(); }
-    public void visit(Not ast) { ast.e.accept(this); currType = new BOOLEAN(); }
-
+    public void visit(Not ast) {
+    ast.e.accept(this);
+    if (!(currType instanceof BOOLEAN))
+        error(ast, "operator ! cannot be applied to " + formatType(currType));
+    currType = new BOOLEAN();
+}
     public void visit(NegExpr ast) {
         ast.ex1.accept(this);
         if (!(currType instanceof INT)) {
@@ -400,7 +417,7 @@ public class TypeCheckVisitor implements Visitor {
             if (argTypes.size() != paramTypes.size()) {
                 error(ast, "mismatch in number of arguments");
             } else {
-                for (int i = 0; i < argTypes.size(); i++) {
+                    for (int i = 0; i < argTypes.size(); i++) {
                     Type req = paramTypes.get(i);
                     Type act = argTypes.get(i);
                     if (!(act.coerceTo(req) || isSubclass(act, req))) {

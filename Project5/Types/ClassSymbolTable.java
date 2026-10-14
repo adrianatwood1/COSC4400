@@ -89,10 +89,12 @@ public class ClassSymbolTable {
         ClassSymbolTable curr = this;
         Set<String> visited = new HashSet<>();
         while (curr != null) {
-            if (!visited.add(curr.name)) {
-                System.out.println("ERROR cyclic inheritance involving " + this.name + ": line not available");
-                Semant.Main.hasError = true;
-                this.isAssembled = true;
+                        if (!visited.add(curr.name)) {
+                if (curr == this) {
+                    System.out.println("ERROR cyclic inheritance involving " + this.name + ": line not available");
+                    Semant.Main.hasError = true;
+                }
+                this.isAssembled = true;   // skip silently if we only lead into a cycle
                 return;
             }
             if (curr.parentClassName == null) break;
@@ -218,8 +220,8 @@ public class ClassSymbolTable {
     private static String formatTypeStrStatic(String s, int indLvl) {
         String ind = "";
         for (int k = 0; k < indLvl; k++) ind += " ";
-        s = s.replace("CLASS(", "").replace("OBJECT(", "").replace(")", "");
-        if (s.endsWith("[]")) {
+                s = s.replace("STRING:", "").replace("CLASS(", "").replace("OBJECT(", "").replace(")", "");
+                if (s.endsWith("[]")) {
             String base = s.substring(0, s.length() - 2);
             return ind + "ARRAY(\n" + formatTypeStrStatic(base, indLvl + 1) + ")";
         } else if (s.equals("int") || s.equals("INT")) {

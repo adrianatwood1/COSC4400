@@ -21,7 +21,7 @@ public class OBJECT extends Type
     {   this(myClass, new RECORD(), new RECORD());   }
 
     public String toString()
-    { return "OBJECT:" + myClass.name; }
+    { return "Object:" + myClass.name; }
 
     public boolean coerceTo(Type t)
     {

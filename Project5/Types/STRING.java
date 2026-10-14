@@ -11,7 +11,7 @@ public class STRING extends Type
     {}
 
     public String toString()
-    { return "STRING:String"; }
+    { return "String"; }
 
     public boolean coerceTo(Type t)
     {   

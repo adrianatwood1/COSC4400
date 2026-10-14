@@ -23,10 +23,12 @@ public class BuildSymbolVisitor implements Visitor {
     // helps printing out errors to our AST
     private void error(Visitable ast, String msg) {
         System.out.print("ERROR " + msg + ": ");
-        PrintVisitor pv = new PrintVisitor(new java.io.PrintWriter(System.out, true));
+        java.io.PrintWriter pw = new java.io.PrintWriter(System.out, true);
+        PrintVisitor pv = new PrintVisitor(pw);
         pv.indentCount = 10;
         pv.priType = false;
         ast.accept(pv);
+        pw.flush();
         System.out.println();
         Main.hasError = true;
     }
