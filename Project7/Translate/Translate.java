@@ -47,8 +47,7 @@ public class Translate implements Absyn.TreeVisitor
     private static Tree.Stm EXP(Tree.Exp exp) {	return new Tree.EXP(exp); }
     private static Tree.Stm JUMP(Label target) 
     {	return new Tree.JUMP(target);   }
-    private static Tree.Stm CJUMP(int relop, Tree.Exp l, Tree.Exp r,
-				  Label t, Label f)
+    private static Tree.Stm CJUMP(int relop, Tree.Exp l, Tree.Exp r, Label t, Label f)
     {	return new Tree.CJUMP(relop, l, r, t, f);   }
     private static Tree.Stm SEQ(Tree.Stm left, Tree.Stm right) 
     {
@@ -75,6 +74,8 @@ public class Translate implements Absyn.TreeVisitor
 	return ((Frame.Access) varEnv.get(Symbol.symbol("this"))).exp(frame);
     }
 
+    // object field access, slide 26. index * wordSize from the object pointer,
+    // and the length of an array is the same thing with index -1
     private Tree.Exp field(Tree.Exp obj, int index)
     {
 	Label bad = frame.badPtr();
@@ -87,6 +88,8 @@ public class Translate implements Absyn.TreeVisitor
 				   CONST(index * frame.wordSize())))));
     }
 
+    // array lookup, checks null first then the index against 0 and the length
+    // the length lives at -wordSize from the array pointer
     private Tree.Exp element(Tree.Exp base, Tree.Exp index)
     {
 	Temp a = new Temp();
@@ -112,6 +115,7 @@ public class Translate implements Absyn.TreeVisitor
 			   BINOP(Tree.BINOP.MUL, TEMP(i), CONST(w))))));
     }
 
+    // locals and params are in varEnv, if it isn't there it has to be a field of this
     private Tree.Exp variable(String name)
     {
 	Frame.Access a = (Frame.Access) varEnv.get(Symbol.symbol(name));
@@ -128,6 +132,7 @@ public class Translate implements Absyn.TreeVisitor
 	return frame.extCall(Symbol.symbol(method), list);
     }
 
+    // one vtable per class, each entry is labeled with the class that owns the method
     private void buildVtable(Absyn.ClassDecl c)
     {
 	ClassSymbolTable cst = global.getClass(c.name);
@@ -142,6 +147,7 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.Program n)
     {
 	// TODO
+	// vtables for every class first, then the methods
 	for (Absyn.ClassDecl c : n.classes)
 	    buildVtable(c);
 	for (Absyn.ClassDecl c : n.classes)
@@ -161,6 +167,8 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.MethodDecl m) 
     {
 	// TODO
+	// main's frame is just called main, everything else is Class__method
+	// this is always the first formal, then the params
 	Frame.Frame saved = frame;
 	String name = m.name.equals("main") ? "main"
 					    : currentClass.name + "__" + m.name;
@@ -170,6 +178,7 @@ public class Translate implements Absyn.TreeVisitor
 	for (Absyn.Formal f : m.params)
 	    varEnv.put(Symbol.symbol(f.name), frame.allocFormal());
 
+	// locals get set to 0 (or their init) before the real statements
 	Tree.Stm body = null;
 	for (Absyn.VarDecl v : m.locals)
 	{
@@ -245,6 +254,8 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.While s)
     {
 	// TODO
+	// labels get made after the cond and body are translated, that's the
+	// order the labels come out in Brylow's output
 	Exp cond = s.ex.accept(this);
 	Exp stm = s.st.accept(this);
 	Label done = new Label();
@@ -285,6 +296,7 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.OrExpression e)
     {
 	// TODO
+	// same idea as and, but if e1 is true the answer is 1
 	Exp e1 = e.e1.accept(this);
 	Exp e2 = e.e2.accept(this);
 	return new IfThenElseExp(e1, new Ex(CONST(1)), e2);
@@ -311,6 +323,7 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.NewArray e) 
     {
 	// TODO
+	// new gets the size twice, once for the memory and once for the length slot
 	Tree.Exp size = e.ex.accept(this).unEx();
 	Temp t = new Temp();
 	LinkedList<Tree.Exp> args = new LinkedList<Tree.Exp>();
@@ -335,14 +348,19 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.Call e) 
     {
 	// TODO
+	// args get translated before the temp and label for the receiver,
+	// otherwise the numbering is off when an arg is a call too
 	Tree.Exp obj = e.ex.accept(this).unEx();
+	LinkedList<Tree.Exp> rest = new LinkedList<Tree.Exp>();
+	if (e.li != null)
+	    for (Object a : e.li)
+		rest.add(((Absyn.Expr) a).accept(this).unEx());
 	Temp r = new Temp();
 	Label ok = new Label();
 	LinkedList<Tree.Exp> args = new LinkedList<Tree.Exp>();
 	args.add(TEMP(r));
-	if (e.li != null)
-	    for (Object a : e.li)
-		args.add(((Absyn.Expr) a).accept(this).unEx());
+	args.addAll(rest);
+	// vtable pointer is at -wordSize, method is typeIndex * wordSize into the vtable
 	int w = frame.wordSize();
 	Tree.Exp vtable = MEM(BINOP(Tree.BINOP.PLUS, TEMP(r), CONST(-w)));
 	Tree.Exp fn = MEM(BINOP(Tree.BINOP.PLUS, vtable, CONST(e.typeIndex * w)));
@@ -364,7 +382,8 @@ public class Translate implements Absyn.TreeVisitor
 
     public Exp visit (Absyn.NewObject e) 
     {
-    	// TODO
+    // TODO
+	// first arg is how many fields, second is the vtable for the class
 	ClassSymbolTable cst = global.getClass(e.id.s);
 	LinkedList<Tree.Exp> args = new LinkedList<Tree.Exp>();
 	args.add(CONST(cst.objectFields.size()));
@@ -374,7 +393,11 @@ public class Translate implements Absyn.TreeVisitor
 
     public Exp visit(Absyn.StringLiteral e) 
     {
-	String result = e.value.intern();
+	// the parser keeps the quotes on the string so we strip them off
+	String text = e.value;
+	if (text.length() >= 2 && text.startsWith("\"") && text.endsWith("\""))
+	    text = text.substring(1, text.length() - 1);
+	String result = text.intern();
 	Label lab = strings.get(result);
 	if (lab != null) return new Ex(NAME(lab));
 	lab = new Label();
@@ -397,6 +420,7 @@ public class Translate implements Absyn.TreeVisitor
     public Exp visit(Absyn.ArrayLength e) 
     {
     	// TODO
+	// handles both array.length (index -1) and object.field
 	return new Ex(field(e.ex.accept(this).unEx(), e.typeIndex));
     }
 
