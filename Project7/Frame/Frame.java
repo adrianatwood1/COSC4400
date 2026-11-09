@@ -2,7 +2,6 @@
  * All rights reserved.  */
 package Frame;
 import java.util.List;
-import java.util.LinkedList;
 
 /**
  * Holds information about local variables and formal parameters 
@@ -15,6 +14,9 @@ public abstract class Frame
   public Temp.Label name;
   /* Formals - This will contain a list of Access*/	
   public List<Access> formals;	
+  /* Actuals */
+  public List<Access> actuals;
+
 
   public abstract Frame newFrame(Symbol.Symbol name);
   public abstract Access allocFormal();
@@ -23,8 +25,7 @@ public abstract class Frame
   public abstract int wordSize();
   /* Function Symbol & Args list */
   public abstract Temp.Temp RV();
-
-	
+  public abstract Tree.Exp extCall(Symbol.Symbol sym, List<Tree.Exp> args);
   public abstract String string(Temp.Label label, String value);
   public abstract String record(Temp.Label label, int words);
   public abstract String record(Temp.Label label, List<Temp.Label> values);

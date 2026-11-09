@@ -1,0 +1,146 @@
+DataFrag(
+	.data
+T7_Control__vtable:
+	.word T7_Control__main
+
+)
+DataFrag(
+	.data
+C__vtable:
+	.word C__f
+
+)
+ProcFrag(
+RiscvFrame(
+main:
+Formals(InReg(t32)
+	InReg(t33)
+	)
+Actuals(InReg(t10)
+	InReg(t11)
+	)
+BadPtr(_BADPTR)
+BadSub(_BADSUB)
+)
+SEQ(
+ EXP(
+  CALL(
+   NAME(_printint)
+   ESEQ(
+    SEQ(
+     MOVE(
+      TEMP(t34)
+      CALL(
+       NAME(_new)
+       CONST(0)
+       NAME(C__vtable)
+      ))
+     SEQ(
+      CJUMP(EQ
+       TEMP(t34)
+       CONST(0)
+       _BADPTR L0)
+      LABEL(L0)))
+    CALL(
+     MEM(
+      BINOP(PLUS
+       MEM(
+        BINOP(PLUS
+         TEMP(t34)
+         CONST(-4)))
+       CONST(0)))
+     TEMP(t34)
+     CONST(3)
+    ))
+  ))
+ MOVE(
+  TEMP(t10)
+  CONST(0)))
+)
+ProcFrag(
+RiscvFrame(
+C__f:
+Formals(InReg(t35)
+	InReg(t36)
+	)
+Actuals(InReg(t10)
+	InReg(t11)
+	)
+BadPtr(_BADPTR)
+BadSub(_BADSUB)
+)
+SEQ(
+ SEQ(
+  SEQ(
+   MOVE(
+    TEMP(t37)
+    CONST(0))
+   MOVE(
+    TEMP(t37)
+    CONST(0)))
+  SEQ(
+   SEQ(
+    SEQ(
+     LABEL(L7)
+     CJUMP(GT
+      TEMP(t36)
+      CONST(0)
+      L8 L6))
+    SEQ(
+     SEQ(
+      LABEL(L8)
+      SEQ(
+       SEQ(
+        SEQ(
+         SEQ(
+          SEQ(
+           CJUMP(LT
+            TEMP(t36)
+            CONST(2)
+            L5 L4)
+           SEQ(
+            LABEL(L5)
+            CJUMP(EQ
+             TEMP(t37)
+             CONST(5)
+             L4 L1)))
+          SEQ(
+           LABEL(L4)
+           CJUMP(EQ
+            TEMP(t36)
+            CONST(3)
+            L1 L2)))
+         SEQ(
+          SEQ(
+           SEQ(
+            LABEL(L1)
+            MOVE(
+             TEMP(t37)
+             BINOP(PLUS
+              TEMP(t37)
+              TEMP(t36))))
+           JUMP(
+            NAME(L3)))
+          SEQ(
+           SEQ(
+            LABEL(L2)
+            MOVE(
+             TEMP(t37)
+             BINOP(MINUS
+              TEMP(t37)
+              CONST(1))))
+           JUMP(
+            NAME(L3)))))
+        LABEL(L3))
+       MOVE(
+        TEMP(t36)
+        BINOP(MINUS
+         TEMP(t36)
+         CONST(1)))))
+     JUMP(
+      NAME(L7))))
+   LABEL(L6)))
+ MOVE(
+  TEMP(t10)
+  TEMP(t37)))
+)
