@@ -1,6 +1,12 @@
 /* Copyright (C) 1997-2003, Purdue Research Foundation of Purdue University.
  * All rights reserved.  */
 package Translate;
+import java.util.*;
+import Temp.Label;
+import Temp.Temp;
+import Symbol.Symbol;
+import Symbol.Table;
+import Types.GlobalSymbolTable;
 
 /**
  * Implements translation of abstract syntax expressions
@@ -10,8 +16,13 @@ package Translate;
 public class Translate implements Absyn.TreeVisitor 
 {
     public Frame.Frame frame;
+    private GlobalSymbolTable global;
+
 	
-    public Translate(Frame.Frame frame) { this.frame = frame; }
+    public Translate(Frame.Frame frame) { 
+        this.frame = frame;
+        this.global = global;
+     }
 	
 	
     private static Tree.Exp CONST(int value)  { return new Tree.CONST(value); }
