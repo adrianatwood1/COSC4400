@@ -42,32 +42,31 @@ public class IfThenElseExp extends Exp {
 	private static Tree.Exp ESEQ(Tree.Stm s, Tree.Exp e){
 		return new Tree.ESEQ(s,e);
 	}
-
 	private static Label target(Tree.Stm jump){
 		return ((Tree.JUMP) jump).targets.getFirst();
 	}
 
     Tree.Stm unCx(Label tt, Label ff) {
-	// TODO: Check for optimizations
-       Tree.Stm tStm = trueExp.unCx(tt, ff);
-	   Tree.Stm fStm = falseExp.unCx(tt, ff);
-	   boolean tJump = tStm instanceof Tree.JUMP;
-	   boolean fJump = tStm instanceof Tree.JUMP;
-	   if(tJump && fJump){
-		return cond.unCx(target(tStm), target(fStm));
-	   }
-	   if(tJump){
-		Label f = new Label();
-	    return SEQ(cond.unCx(target(tStm), f), SEQ(LABEL(f), fStm));
-	   }
-	   if(fJump){
-		Label t = new Label();
-		return SEQ(cond.unCx(target(tStm), t), SEQ(LABEL(t), fStm));
-	   }
-	   Label t = new Label();
-	   Label f = new Label();
 
-		return SEQ(cond.unCx(t, f),
+	// TODO: Check for optimizations
+
+	Tree.Stm tStm = trueExp.unCx(tt, ff);
+	Tree.Stm fStm = falseExp.unCx(tt, ff);
+	boolean tJump = tStm instanceof Tree.JUMP;
+	boolean fJump = fStm instanceof Tree.JUMP;
+	if (tJump && fJump)
+	    return cond.unCx(target(tStm), target(fStm));
+	if (tJump) {
+	    Label f = new Label();
+	    return SEQ(cond.unCx(target(tStm), f), SEQ(LABEL(f), fStm));
+	}
+	if (fJump) {
+	    Label t = new Label();
+	    return SEQ(cond.unCx(t, target(fStm)), SEQ(LABEL(t), tStm));
+	}
+	Label t = new Label();
+	Label f = new Label();
+	return SEQ(cond.unCx(t, f),
 		   SEQ(SEQ(LABEL(t), tStm),
 		       SEQ(LABEL(f), fStm)));
     }
@@ -92,7 +91,6 @@ public class IfThenElseExp extends Exp {
     }
 
     Tree.Stm unNx() {
-	// TODO: Check for optimizations
     Tree.Stm tStm = trueExp.unNx();
     Tree.Stm fStm = falseExp.unNx();
 	Label t, f, join;

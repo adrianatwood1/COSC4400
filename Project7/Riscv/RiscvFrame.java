@@ -162,7 +162,7 @@ public class RiscvFrame extends Frame.Frame
 
     private static HashMap<Symbol,Label> labels = new HashMap<Symbol,Label>();
 
-    public Tree.Exp externalCall(Symbol s, List<Tree.Exp> args) 
+    public Tree.Exp extCall(Symbol s, List<Tree.Exp> args) 
     {
 	Label l = labels.get(s);
 	if (l == null) 

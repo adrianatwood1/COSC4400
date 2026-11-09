@@ -1,82 +1,74 @@
 /* Copyright (C) 1997-2003, Purdue Research Foundation of Purdue University.
  * All rights reserved.  */
 
+
+/**
+ * COSC 4400 - Project 7
+ * Tree Translation 
+ * @adrian atwood pj panarese
+ * Dr.Brylow
+ * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu patrick.panarese@marquette.edu
+ */
+
+
 package Translate;
+import Parse.MiniJavaParser;
+import Parse.ParseException;
+import Types.GlobalSymbolTable;
 import java.io.PrintWriter;
-import java.util.Iterator;
 
-//import Semant.*;
-import Absyn.Program;
-import Parse.*;
 
-import java.util.HashMap; 
-import java.util.List;
-import java.util.LinkedList;
 
-//import Translate.Translate;
-
-public class Main 
+public class Main
 {
-    public static void main(String args[])
+    public static void main(String[] args)
     {
-	java.io.Reader reader = null;
-		
-	try
-	{
-	    reader = new java.io.FileReader(args[i]);
-	}
-	catch (java.io.FileNotFoundException fnfe)
-	{
-	    System.err.println("File Not Found: " + args[i]);
-	    System.exit(-1);
-	}
-		
-	if (null == reader)
-	{
-	    System.err.println("Usage: Translate file.java");
-	    System.exit(-2);
-	}   
-		
-	Absyn.Program parse = null;
-	try
-	{
-	    parse = new Parse.ReadTypes(reader).Program();
-	}
-	catch (ParseException p)
-	{
-	    System.err.println(p.toString());
-	    System.exit(-1);
-	}
-		
-	Translate translate = new Translate(new Arm.ArmFrame());
-	parse.accept(translate);
-		
-	PrintWriter writer = new PrintWriter(System.out);
-		
-	for (Iterator frags = translate.results().iterator(); 
-	     frags.hasNext(); ) 
-	{
-	    Frag f = (Frag)frags.next();
-	    if (f instanceof DataFrag) 
-	    {
-		writer.println("DataFrag(");
-		writer.println(f);
-		writer.println(")");
-	    } 
-	    else 
-	    {
-		writer.println("ProcFrag(");
-		ProcFrag p = (ProcFrag)f;
-		p.frame.printFrame(writer);
-		if (p.body != null) 
-		{
-		    new Tree.Print(writer, p.body);
-		    writer.println();
-		}
-		writer.println(")");
-	    }
-	}  
-	writer.flush();
-    }
-}	
+        try
+        {
+            MiniJavaParser parser = new MiniJavaParser(System.in);
+            Absyn.Program ast = parser.Goal();
 
+            GlobalSymbolTable global = new GlobalSymbolTable();
+            ast.accept(new Semant.BuildSymbolVisitor(global));
+            for (String className : global.classes.keySet())
+                global.getClass(className).assembleInheritance(global);
+            Semant.Main.hasError = false;
+            ast.accept(new Semant.TypeCheckVisitor(global));
+
+            if (Semant.Main.hasError){
+				return;
+			} 
+
+            Translate translate = new Translate(new Riscv.RiscvFrame(), global);
+            ast.accept(translate);
+
+            PrintWriter writer = new PrintWriter(System.out);
+            for (Frag fra : translate.results())
+            {
+                if (fra instanceof DataFrag)
+                {
+                    writer.println("DataFrag(");
+                    writer.println(fra);
+                    writer.println(")");
+                }
+                else
+                {
+                    ProcFrag proc = (ProcFrag) fra;
+                    writer.println("ProcFrag(");
+                    proc.frame.printFrame(writer);
+                    if (proc.body != null)
+                    {
+                        new Tree.Print(writer, proc.body);
+                        writer.println();
+                    }
+                    writer.println(")");
+                }
+            }
+            writer.flush();
+        }
+        catch (ParseException e)
+        {
+            System.err.println("Parse Error: " + e.getMessage());
+        }
+    }
+}
