@@ -346,11 +346,14 @@ public class RiscvFrame extends Frame.Frame
     {
     }
 
-    public void procEntryExit2(List<Assem.Instr> body)
+   /*
+   public void procEntryExit2(List<Assem.Instr> body)
     {
     }
 
     public void procEntryExit3(List<Assem.Instr> body)
     {
     }
+    */
+   
 }
