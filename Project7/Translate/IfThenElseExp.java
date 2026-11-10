@@ -71,7 +71,7 @@ public class IfThenElseExp extends Exp {
 		       SEQ(LABEL(f), fStm)));
     }
 
-    Tree.Exp unEx() {
+     Tree.Exp unEx() {
 	// TODO: Check for optimizations
     Tree.Exp tExp = trueExp.unEx();
 	Tree.Exp fExp = falseExp.unEx();
@@ -91,9 +91,24 @@ public class IfThenElseExp extends Exp {
     }
 
     Tree.Stm unNx() {
+	// check for optimizations
     Tree.Stm tStm = trueExp.unNx();
     Tree.Stm fStm = falseExp.unNx();
 	Label t, f, join;
+	if (fStm == null) {
+	    t = new Label();
+	    join = new Label();
+	    return SEQ(SEQ(cond.unCx(t, join),
+			   SEQ(SEQ(LABEL(t), tStm), JUMP(join))),
+		       LABEL(join));
+	}
+	if (tStm == null) {
+	    f = new Label();
+	    join = new Label();
+	    return SEQ(SEQ(cond.unCx(join, f),
+			   SEQ(SEQ(LABEL(f), fStm), JUMP(join))),
+		       LABEL(join));
+	}
 	t = new Label();
 	f = new Label();
 	join = new Label();
