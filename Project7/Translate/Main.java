@@ -70,5 +70,13 @@ public class Main
         {
             System.err.println("Parse Error: " + e.getMessage());
         }
+        catch (Parse.TokenMgrError e)
+        {
+            System.err.println("Lexical Error: " + e.getMessage());
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 }
