@@ -1,0 +1,51 @@
+JFLAGS=-cp .
+JAR=jar
+JAVA=java
+JAVAC=javac
+JAVACC=javacc
+
+PARSEDIR=Parse
+MJ_PARSER=MiniJavaParser
+
+DEFAULT_JAVACCGEN = $(PARSEDIR)/SimpleCharStream.java \
+	$(PARSEDIR)/ParseException.java \
+	$(PARSEDIR)/Token.java \
+	$(PARSEDIR)/TokenMgrError.java
+
+MJ_JAVACCGEN = $(DEFAULT_JAVACCGEN) \
+	$(PARSEDIR)/$(MJ_PARSER).java \
+	$(PARSEDIR)/$(MJ_PARSER)Constants.java \
+	$(PARSEDIR)/$(MJ_PARSER)TokenManager.java
+
+# Project 7 - Intermediate Representation
+ASTSRC = $(wildcard Absyn/*.java)
+TYPESSRC = $(wildcard Types/*.java)
+SEMANTSRC = $(wildcard Semant/*.java)
+TEMPSRC = $(wildcard Temp/*.java)
+TREESRC = $(wildcard Tree/*.java)
+FRAMESRC = $(wildcard Frame/*.java)
+RISCVSRC = $(wildcard Riscv/*.java)
+TRANSLATESRC = $(wildcard Translate/*.java)
+
+PROJECTSRC = $(ASTSRC) $(TYPESSRC) $(SEMANTSRC) $(TEMPSRC) $(TREESRC) \
+	$(FRAMESRC) $(RISCVSRC) $(TRANSLATESRC)
+
+all:	$(PARSEDIR)/$(MJ_PARSER).java $(PROJECTSRC:.java=.class)
+	${JAVAC} ${JFLAGS} Absyn/*.java Symbol/*.java Types/*.java Semant/*.java \
+		Temp/*.java Tree/*.java Frame/*.java Riscv/*.java Translate/*.java
+
+$(PARSEDIR)/$(MJ_PARSER).java: $(PARSEDIR)/$(MJ_PARSER).jj
+	cd $(PARSEDIR); ${JAVACC} $(MJ_PARSER).jj;
+	${JAVAC} ${JFLAGS} ${MJ_JAVACCGEN}
+
+%.class : %.java
+	${JAVAC} ${JFLAGS} $<
+
+clean:
+	rm -f $(PROJECTSRC:.java=.class) \
+		$(MJ_JAVACCGEN) $(MJ_JAVACCGEN:.java=.class)\
+		'$(PARSEDIR)/$(MJ_PARSER)$$JJCalls.class' \
+		'$(PARSEDIR)/$(MJ_PARSER)$$LookaheadSuccess.class' 
+
+realclean: clean
+	rm -f */*.class *~ */*~ *.jar
