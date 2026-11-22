@@ -1,8 +1,8 @@
 /* Copyright (C) 1997-2003, Purdue Research Foundation of Purdue University.
  * All rights reserved.  */
 package Tree;
-import java.util.LinkedList;
 import Temp.Temp;
+import java.util.LinkedList;
 
 /**
  * Abstract class that represents an expression in the Tree language.
@@ -11,4 +11,7 @@ import Temp.Temp;
 public abstract class Exp implements Hospitable
 {
     public abstract void accept(IntVisitor v, int d);
+    public abstract Temp accept(CodeVisitor v);
+    public abstract LinkedList<Exp> kids();
+    public abstract Exp build(LinkedList<Exp> kids);
 }

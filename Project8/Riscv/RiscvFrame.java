@@ -346,6 +346,7 @@ public class RiscvFrame extends Frame.Frame
     {
     }
 
+   
    /*
    public void procEntryExit2(List<Assem.Instr> body)
     {
@@ -355,5 +356,12 @@ public class RiscvFrame extends Frame.Frame
     {
     }
     */
-   
-}
+
+   public List<Assem.Instr> codeGen(List<Tree.Stm> body){
+        Codegen gen = new Codegen(this);
+        for(Tree.Stm s : body)
+            s.accept(gen);
+        return gen.instrs();
+        }
+   }
+

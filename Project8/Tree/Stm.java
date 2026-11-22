@@ -1,7 +1,6 @@
 /* Copyright (C) 1997-2003, Purdue Research Foundation of Purdue University.
  * All rights reserved.  */
 package Tree;
-import Temp.Temp;
 import java.util.LinkedList;
 
 /**
@@ -11,4 +10,7 @@ import java.util.LinkedList;
 abstract public class Stm implements Hospitable
 {
     public abstract void accept(IntVisitor v, int d);
+    public abstract void accept(CodeVisitor v);
+    public abstract LinkedList<Exp> kids();
+    public abstract Stm build(LinkedList<Exp> kids);
 }

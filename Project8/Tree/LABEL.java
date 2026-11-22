@@ -15,4 +15,9 @@ public class LABEL extends Stm
     public LABEL(Label l) { label=l; }
     public LinkedList<Exp> kids() { return new LinkedList<Exp>(); }
     public void accept(IntVisitor v, int d) { v.visit(this, d); }
+
+    public Stm build(LinkedList<Exp> kids) {
+	    return this;
+    }
+
 }
