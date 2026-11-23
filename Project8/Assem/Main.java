@@ -4,12 +4,17 @@
 package Assem;
 import java.io.PrintWriter;
 import java.util.Iterator;
-
 import Parse.*;
-
 import java.util.HashMap; 
 import java.util.List;
 import java.util.LinkedList;
+/**
+ * COSC 4400 - Project 8
+ * Instruction Selection
+ * @adrian atwood pj panarese
+ * Dr.Brylow
+ * TA-BOT:MAILTO adrian.atwood-langeler@marquette.edu patrick.panarese@marquette.edu
+ */
 
 public class Main 
 {
@@ -59,8 +64,7 @@ public class Main
 			{   traceOutput = true;   }
 			else if (args[i].equals("-"))
 		    {
-				java.io.InputStreamReader isr = 
-					new java.io.InputStreamReader(System.in);
+				java.io.InputStreamReader isr = new java.io.InputStreamReader(System.in);
 				reader = new java.io.BufferedReader(isr);
 		    }
 			else
@@ -76,14 +80,26 @@ public class Main
 			    }
 		    }
 	    }
-		
-		if (null == reader) usage();
-		
+		if (null == reader)
+		{
+			java.io.InputStreamReader isr = new java.io.InputStreamReader(System.in);
+			reader = new java.io.BufferedReader(isr);
+		}
 		LinkedList<Translate.Frag> frags = null;
-
 		try
 	    {
-			frags = new Parse.ReadFrags(reader).Program();
+			Absyn.Program ast = new MiniJavaParser(reader).Goal();
+			Types.GlobalSymbolTable global = new Types.GlobalSymbolTable();
+			ast.accept(new Semant.BuildSymbolVisitor(global));
+			for (String className : global.classes.keySet())
+				global.getClass(className).assembleInheritance(global);
+			Semant.Main.hasError = false;
+			ast.accept(new Semant.TypeCheckVisitor(global));
+			if (Semant.Main.hasError) System.exit(-1);
+			Translate.Translate translate =
+				new Translate.Translate(new Riscv.RiscvFrame(), global);
+			ast.accept(translate);
+			frags = new LinkedList<Translate.Frag>(translate.results());
 	    }
 		catch (ParseException p)
 	    {
@@ -156,7 +172,6 @@ public class Main
 					}
 					writer.flush();
 				}
-
 				List<Assem.Instr> code = p.frame.codeGen(traced);
 				if (assemOutput)
 				{
@@ -165,7 +180,6 @@ public class Main
 						writer.println(i);
 					}
 				}
-
 				writer.println("ProcFrag(");
 				p.frame.printFrame(writer);
 				for (Assem.Instr i : code)
@@ -177,5 +191,4 @@ public class Main
 		}  
 		writer.flush();
 	}
-}	
-
+}
