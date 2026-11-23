@@ -18,14 +18,14 @@ public class BINOP extends Exp {
     public void accept(IntVisitor v, int d) { v.visit(this, d); }
     public Temp accept(CodeVisitor v) { return v.visit(this); }
 
-
-    public LinkedList<Exp> kids() { 
-        LinkedList<Exp> l = new LinkedList<Exp>();
-        l.add(left);
-        l.add(right);
-        return l;
+    public LinkedList<Exp> kids() {
+	    LinkedList<Exp> l = new LinkedList<Exp>();
+	    l.add(left);
+	    l.add(right);
+	    return l;
     }
-    public Exp buildExp(LinkedList<Exp> kids){
-        return new BINOP(binop, kids.get(0), kids.get(1));
+
+    public Exp build(LinkedList<Exp> kids) {
+	    return new BINOP(binop, kids.get(0), kids.get(1));
     }
 }

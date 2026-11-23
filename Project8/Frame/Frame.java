@@ -35,7 +35,7 @@ public abstract class Frame
   public abstract void printFrame(java.io.PrintWriter pw);
 
   public abstract void procEntryExit1(List<Tree.Stm> body);
-  public abstract List<Assem.Instr> codeGen(List<Tree.Stm body);
+  public abstract List<Assem.Instr> codeGen(List<Tree.Stm> body);
   //public abstract void procEntryExit2(List<Assem.Instr> body);
   //public abstract void procEntryExit3(List<Assem.Instr> body);
 }

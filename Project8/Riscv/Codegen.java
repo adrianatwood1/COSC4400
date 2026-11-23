@@ -155,14 +155,12 @@ public class Codegen implements Tree.CodeVisitor {
             Tree.BINOP b = (Tree.BINOP) n.exp;
             if (fits(b.right)){
                 Temp base = b.left.accept(this);
-                emit(new Assem.OPER("\tlw\t`d0,\t" + value(b.right) + "(`s0)",
-                                    L(r), L(base), null));
+                emit(new Assem.OPER("\tlw\t`d0,\t" + value(b.right) + "(`s0)", L(r), L(base), null));
                 return r;
             }
             if (fits(b.left)){
                 Temp base = b.right.accept(this);
-                emit(new Assem.OPER("\tlw\t`d0,\t" + value(b.left) + "(`s0)",
-                                    L(r), L(base), null));
+                emit(new Assem.OPER("\tlw\t`d0,\t" + value(b.left) + "(`s0)", L(r), L(base), null));
                 return r;
             }
         }
@@ -267,23 +265,20 @@ public class Codegen implements Tree.CodeVisitor {
                 used.add(RiscvFrame.argRegs[count]);
             } else {
                 int off = (count - RiscvFrame.argRegs.length) * frame.wordSize();
-                emit(new Assem.OPER("\tsw\t`s0,\t" + off + "(`s1)",
-                                    null, L(t, RiscvFrame.SP), null));
+                emit(new Assem.OPER("\tsw\t`s0,\t" + off + "(`s1)", null, L(t, RiscvFrame.SP), null));
             }
             count++;
         }
         if (n.func instanceof Tree.NAME){
             emit(new Assem.OPER("\tcall\t" + ((Tree.NAME) n.func).label,
-                                RiscvFrame.calldefs.clone(),
-                                used.toArray(new Temp[0]), null));
+                                RiscvFrame.calldefs.clone(), used.toArray(new Temp[0]), null));
         } else {
             Temp f = n.func.accept(this);
             LinkedList<Temp> uses = new LinkedList<Temp>();
             uses.add(f);
             uses.addAll(used);
             emit(new Assem.OPER("\tjalr\t`s0",
-                                RiscvFrame.calldefs.clone(),
-                                uses.toArray(new Temp[0]), null));
+                                RiscvFrame.calldefs.clone(), uses.toArray(new Temp[0]), null));
         }
         emit(new Assem.OPER("\t// Call sink", null, RiscvFrame.calldefs.clone(), null));
         return frame.RV();
