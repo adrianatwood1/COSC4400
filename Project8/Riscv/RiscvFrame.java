@@ -297,7 +297,7 @@ public class RiscvFrame extends Frame.Frame
 
     public void printFrame(java.io.PrintWriter writer)
     {
-	writer.println("RiscvFrame(");
+	writer.println("Riscv.RiscvFrame(");
 	writer.println(this.name + ":");
 	writer.print("Formals(");
     
