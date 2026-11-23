@@ -344,6 +344,20 @@ public class RiscvFrame extends Frame.Frame
 
     public void procEntryExit1(List<Tree.Stm> body)
     {
+        LinkedList<Tree.Stm> prologue = new LinkedList<Tree.Stm>();
+	    LinkedList<Tree.Stm> epilogue = new LinkedList<Tree.Stm>();
+	    Temp[] saved = new Temp[calleeSaves.length];
+	    for (int i = 0; i < calleeSaves.length; i++)
+	    {
+	        saved[i] = new Temp();
+	        prologue.add(MOVE(TEMP(saved[i]), TEMP(calleeSaves[i])));
+	    }
+	    for (int i = 0; i < formals.size(); i++)
+	        prologue.add(MOVE(formals.get(i).exp(this), actuals.get(i).exp(this)));
+	    for (int i = calleeSaves.length - 1; i >= 0; i--)
+	        epilogue.add(MOVE(TEMP(calleeSaves[i]), TEMP(saved[i])));
+	    body.addAll(0, prologue);
+	    body.addAll(epilogue);
     }
 
    
